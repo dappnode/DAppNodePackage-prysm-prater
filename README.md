@@ -11,3 +11,7 @@ Validate with prysm: a Go implementation of the Ethereum 2.0 Serenity protocol a
 
 
 Grafana dashboard thanks to the amazing work of [metanull-operator](https://github.com/metanull-operator/eth2-grafana)
+
+|      Updated       |   Champion/s   |
+| :----------------: | :------------: |
+| :heavy_check_mark: | @tropicar |
