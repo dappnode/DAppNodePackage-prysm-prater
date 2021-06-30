@@ -1,5 +1,5 @@
 {
-  "name": "prater.dnp.dappnode.eth",
+  "name": "prysm-prater.dnp.dappnode.eth",
   "version": "0.1.16",
   "upstreamVersion": "v1.3.10",
   "upstreamRepo": "prysmaticlabs/prysm",
@@ -39,7 +39,7 @@
     "Blockchain"
   ],
   "links": {
-    "ui": "http://prater.dappnode/",
+    "ui": "http://prysm-prater.dappnode/",
     "homepage": "https://prylabs.net/participate?node=dappnode",
     "readme": "https://github.com/dappnode/DAppNodePackage-prater",
     "prysm": "https://prylabs.net"
