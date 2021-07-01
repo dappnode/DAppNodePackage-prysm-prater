@@ -256,7 +256,7 @@
       "pluginVersion": "7.0.0",
       "targets": [
         {
-          "expr": "sum(validator_balance{service=\"validator.prater.dappnode\"})",
+          "expr": "sum(validator_balance{service=\"validator.prysm-prater.dappnode\"})",
           "instant": true,
           "interval": "",
           "legendFormat": "vbal",
@@ -337,7 +337,7 @@
       "pluginVersion": "7.0.0",
       "targets": [
         {
-          "expr": "sum(validator_balance{service=\"validator.prater.dappnode\"})-(count(validator_balance{service=\"validator.prater.dappnode\"} > 16 and validator_statuses{service=\"validator.prater.dappnode\"} == 3)*32)",
+          "expr": "sum(validator_balance{service=\"validator.prysm-prater.dappnode\"})-(count(validator_balance{service=\"validator.prysm-prater.dappnode\"} > 16 and validator_statuses{service=\"validator.prysm-prater.dappnode\"} == 3)*32)",
           "instant": true,
           "interval": "",
           "legendFormat": "",
@@ -422,7 +422,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "(sum(validator_balance{service=\"validator.prater.dappnode\"}) - (count(validator_balance{service=\"validator.prater.dappnode\"} > 16 and validator_statuses{service=\"validator.prater.dappnode\"} == 3)*32))/(count(validator_balance{service=\"validator.prater.dappnode\"} > 16 and validator_statuses{service=\"validator.prater.dappnode\"} == 3)*32)  ",
+          "expr": "(sum(validator_balance{service=\"validator.prysm-prater.dappnode\"}) - (count(validator_balance{service=\"validator.prysm-prater.dappnode\"} > 16 and validator_statuses{service=\"validator.prysm-prater.dappnode\"} == 3)*32))/(count(validator_balance{service=\"validator.prysm-prater.dappnode\"} > 16 and validator_statuses{service=\"validator.prysm-prater.dappnode\"} == 3)*32)  ",
           "instant": true,
           "interval": "",
           "legendFormat": "",
@@ -571,7 +571,7 @@
       "pluginVersion": "7.0.0",
       "targets": [
         {
-          "expr": "(beacon_prev_epoch_target_gwei{service=\"beacon-chain.prater.dappnode\"} / beacon_prev_epoch_active_gwei{service=\"beacon-chain.prater.dappnode\"} )",
+          "expr": "(beacon_prev_epoch_target_gwei{service=\"beacon-chain.prysm-prater.dappnode\"} / beacon_prev_epoch_active_gwei{service=\"beacon-chain.prysm-prater.dappnode\"} )",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
@@ -640,7 +640,7 @@
       "pluginVersion": "7.0.0",
       "targets": [
         {
-          "expr": "clamp_min((1-(4*((floor(beacon_clock_time_slot{service=\"beacon-chain.prater.dappnode\"}/32) - beacon_finalized_epoch{service=\"beacon-chain.prater.dappnode\"} - 2)/100))),0)",
+          "expr": "clamp_min((1-(4*((floor(beacon_clock_time_slot{service=\"beacon-chain.prysm-prater.dappnode\"}/32) - beacon_finalized_epoch{service=\"beacon-chain.prysm-prater.dappnode\"} - 2)/100))),0)",
           "interval": "",
           "legendFormat": "",
           "refId": "A"
@@ -699,7 +699,7 @@
       "steppedLine": true,
       "targets": [
         {
-          "expr": "(beacon_prev_epoch_target_gwei{service=\"beacon-chain.prater.dappnode\"} / beacon_prev_epoch_active_gwei{service=\"beacon-chain.prater.dappnode\"} )",
+          "expr": "(beacon_prev_epoch_target_gwei{service=\"beacon-chain.prysm-prater.dappnode\"} / beacon_prev_epoch_active_gwei{service=\"beacon-chain.prysm-prater.dappnode\"} )",
           "interval": "",
           "legendFormat": "participation rate",
           "refId": "A"
@@ -808,7 +808,7 @@
           "refId": "A"
         },
         {
-          "expr": "sum(validator_balance{service=\"validator.prater.dappnode\"})",
+          "expr": "sum(validator_balance{service=\"validator.prysm-prater.dappnode\"})",
           "hide": false,
           "instant": true,
           "interval": "",
@@ -902,7 +902,7 @@
       "pluginVersion": "7.0.0",
       "targets": [
         {
-          "expr": "sum(validator_balance{service=\"validator.prater.dappnode\"})-(count(validator_balance{service=\"validator.prater.dappnode\"} > 16 and validator_statuses{service=\"validator.prater.dappnode\"} == 3)*32)",
+          "expr": "sum(validator_balance{service=\"validator.prysm-prater.dappnode\"})-(count(validator_balance{service=\"validator.prysm-prater.dappnode\"} > 16 and validator_statuses{service=\"validator.prysm-prater.dappnode\"} == 3)*32)",
           "instant": true,
           "interval": "",
           "legendFormat": "total_balance",
@@ -1144,21 +1144,21 @@
       "pluginVersion": "7.0.0",
       "targets": [
         {
-          "expr": "floor(beacon_clock_time_slot{service=\"beacon-chain.prater.dappnode\"} / 32)",
+          "expr": "floor(beacon_clock_time_slot{service=\"beacon-chain.prysm-prater.dappnode\"} / 32)",
           "instant": true,
           "interval": "",
           "legendFormat": "current",
           "refId": "A"
         },
         {
-          "expr": "beacon_current_justified_epoch{service=\"beacon-chain.prater.dappnode\"}",
+          "expr": "beacon_current_justified_epoch{service=\"beacon-chain.prysm-prater.dappnode\"}",
           "instant": true,
           "interval": "",
           "legendFormat": "justified",
           "refId": "C"
         },
         {
-          "expr": "beacon_finalized_epoch {service=\"beacon-chain.prater.dappnode\"} ",
+          "expr": "beacon_finalized_epoch {service=\"beacon-chain.prysm-prater.dappnode\"} ",
           "format": "time_series",
           "instant": true,
           "interval": "",
@@ -1214,14 +1214,14 @@
       "pluginVersion": "7.0.0",
       "targets": [
         {
-          "expr": "beacon_slot{service=\"beacon-chain.prater.dappnode\"}",
+          "expr": "beacon_slot{service=\"beacon-chain.prysm-prater.dappnode\"}",
           "instant": true,
           "interval": "",
           "legendFormat": "current slot",
           "refId": "A"
         },
         {
-          "expr": "beacon_head_slot{service=\"beacon-chain.prater.dappnode\"}",
+          "expr": "beacon_head_slot{service=\"beacon-chain.prysm-prater.dappnode\"}",
           "instant": true,
           "interval": "",
           "legendFormat": "head slot",
@@ -1496,7 +1496,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "sum(validator_balance{service=\"validator.prater.dappnode\"}) - sum(validator_balance{service=\"validator.prater.dappnode\"} offset 1h != 0) - (32 * count(validator_balance{service=\"validator.prater.dappnode\"} > 16)) + (32 * count(validator_balance{service=\"validator.prater.dappnode\"} offset 1h > 16))",
+          "expr": "sum(validator_balance{service=\"validator.prysm-prater.dappnode\"}) - sum(validator_balance{service=\"validator.prysm-prater.dappnode\"} offset 1h != 0) - (32 * count(validator_balance{service=\"validator.prysm-prater.dappnode\"} > 16)) + (32 * count(validator_balance{service=\"validator.prysm-prater.dappnode\"} offset 1h > 16))",
           "instant": false,
           "interval": "",
           "intervalFactor": 3,
@@ -1592,7 +1592,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "sum(validator_balance{service=\"validator.prater.dappnode\"}) - sum(validator_balance{service=\"validator.prater.dappnode\"} offset 1d != 0) - (32 * count(validator_balance{service=\"validator.prater.dappnode\"} > 16)) + (32 * count(validator_balance{service=\"validator.prater.dappnode\"} offset 1d > 16))",
+          "expr": "sum(validator_balance{service=\"validator.prysm-prater.dappnode\"}) - sum(validator_balance{service=\"validator.prysm-prater.dappnode\"} offset 1d != 0) - (32 * count(validator_balance{service=\"validator.prysm-prater.dappnode\"} > 16)) + (32 * count(validator_balance{service=\"validator.prysm-prater.dappnode\"} offset 1d > 16))",
           "instant": false,
           "interval": "",
           "legendFormat": "",
@@ -1687,7 +1687,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "sum(validator_balance{service=\"validator.prater.dappnode\"}) - sum(validator_balance{service=\"validator.prater.dappnode\"} offset 7d != 0) - (32 * count(validator_balance{service=\"validator.prater.dappnode\"} > 16)) + (32 * count(validator_balance{service=\"validator.prater.dappnode\"} offset 7d > 16))",
+          "expr": "sum(validator_balance{service=\"validator.prysm-prater.dappnode\"}) - sum(validator_balance{service=\"validator.prysm-prater.dappnode\"} offset 7d != 0) - (32 * count(validator_balance{service=\"validator.prysm-prater.dappnode\"} > 16)) + (32 * count(validator_balance{service=\"validator.prysm-prater.dappnode\"} offset 7d > 16))",
           "instant": false,
           "interval": "",
           "legendFormat": "",
@@ -1782,7 +1782,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "sum(validator_balance{service=\"validator.prater.dappnode\"}) - sum(validator_balance{service=\"validator.prater.dappnode\"} offset 30d != 0) - (32 * count(validator_balance{service=\"validator.prater.dappnode\"} > 16)) + (32 * count(validator_balance{service=\"validator.prater.dappnode\"} offset 30d > 16))",
+          "expr": "sum(validator_balance{service=\"validator.prysm-prater.dappnode\"}) - sum(validator_balance{service=\"validator.prysm-prater.dappnode\"} offset 30d != 0) - (32 * count(validator_balance{service=\"validator.prysm-prater.dappnode\"} > 16)) + (32 * count(validator_balance{service=\"validator.prysm-prater.dappnode\"} offset 30d > 16))",
           "instant": false,
           "interval": "",
           "legendFormat": "",
@@ -1961,7 +1961,7 @@
           "refId": "C"
         },
         {
-          "expr": "validator_count{service=\"beacon-chain.prater.dappnode\", state=\"Active\"}",
+          "expr": "validator_count{service=\"beacon-chain.prysm-prater.dappnode\", state=\"Active\"}",
           "interval": "",
           "legendFormat": "active validators",
           "refId": "D"
@@ -2144,7 +2144,7 @@
       "tableColumn": "annualized hourly return",
       "targets": [
         {
-          "expr": "((sum(validator_balance{service=\"validator.prater.dappnode\"}) - sum(validator_balance{service=\"validator.prater.dappnode\"} offset 1h != 0) - (32 * count(validator_balance{service=\"validator.prater.dappnode\"} > 16)) +\t(32 * count(validator_balance{service=\"validator.prater.dappnode\"} offset 1h > 16)))/(32 * avg_over_time(count(validator_balance{service=\"validator.prater.dappnode\"} > 16)[1h:]))) * 365 * 24",
+          "expr": "((sum(validator_balance{service=\"validator.prysm-prater.dappnode\"}) - sum(validator_balance{service=\"validator.prysm-prater.dappnode\"} offset 1h != 0) - (32 * count(validator_balance{service=\"validator.prysm-prater.dappnode\"} > 16)) +\t(32 * count(validator_balance{service=\"validator.prysm-prater.dappnode\"} offset 1h > 16)))/(32 * avg_over_time(count(validator_balance{service=\"validator.prysm-prater.dappnode\"} > 16)[1h:]))) * 365 * 24",
           "hide": false,
           "interval": "",
           "legendFormat": "annualized hourly return",
@@ -2239,7 +2239,7 @@
       "tableColumn": "annualized daily return",
       "targets": [
         {
-          "expr": "((sum(validator_balance{service=\"validator.prater.dappnode\"}) - sum(validator_balance{service=\"validator.prater.dappnode\"} offset 1d != 0) - (32 * count(validator_balance{service=\"validator.prater.dappnode\"} > 16)) +\t(32 * count(validator_balance{service=\"validator.prater.dappnode\"} offset 1d > 16)))/(32 * avg_over_time(count(validator_balance{service=\"validator.prater.dappnode\"} > 16)[1d:]))) * 365",
+          "expr": "((sum(validator_balance{service=\"validator.prysm-prater.dappnode\"}) - sum(validator_balance{service=\"validator.prysm-prater.dappnode\"} offset 1d != 0) - (32 * count(validator_balance{service=\"validator.prysm-prater.dappnode\"} > 16)) +\t(32 * count(validator_balance{service=\"validator.prysm-prater.dappnode\"} offset 1d > 16)))/(32 * avg_over_time(count(validator_balance{service=\"validator.prysm-prater.dappnode\"} > 16)[1d:]))) * 365",
           "hide": false,
           "interval": "",
           "legendFormat": "annualized daily return",
@@ -2334,7 +2334,7 @@
       "tableColumn": "annualized weekly return",
       "targets": [
         {
-          "expr": "((sum(validator_balance{service=\"validator.prater.dappnode\"}) - sum(validator_balance{service=\"validator.prater.dappnode\"} offset 7d != 0) - (32 * count(validator_balance{service=\"validator.prater.dappnode\"} > 16)) +\t(32 * count(validator_balance{service=\"validator.prater.dappnode\"} offset 7d > 16)))/(32 * avg_over_time(count(validator_balance{service=\"validator.prater.dappnode\"} > 16)[7d:]))) * (365/7)",
+          "expr": "((sum(validator_balance{service=\"validator.prysm-prater.dappnode\"}) - sum(validator_balance{service=\"validator.prysm-prater.dappnode\"} offset 7d != 0) - (32 * count(validator_balance{service=\"validator.prysm-prater.dappnode\"} > 16)) +\t(32 * count(validator_balance{service=\"validator.prysm-prater.dappnode\"} offset 7d > 16)))/(32 * avg_over_time(count(validator_balance{service=\"validator.prysm-prater.dappnode\"} > 16)[7d:]))) * (365/7)",
           "hide": false,
           "interval": "",
           "legendFormat": "annualized weekly return",
@@ -2429,7 +2429,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "((sum(validator_balance{service=\"validator.prater.dappnode\"}) - sum(validator_balance{service=\"validator.prater.dappnode\"} offset 30d != 0) - (32 * count(validator_balance{service=\"validator.prater.dappnode\"} > 16)) +\t(32 * count(validator_balance{service=\"validator.prater.dappnode\"} offset 30d > 16)))/(32 * avg_over_time(count(validator_balance{service=\"validator.prater.dappnode\"} > 16)[30d:]))) * (365/30)",
+          "expr": "((sum(validator_balance{service=\"validator.prysm-prater.dappnode\"}) - sum(validator_balance{service=\"validator.prysm-prater.dappnode\"} offset 30d != 0) - (32 * count(validator_balance{service=\"validator.prysm-prater.dappnode\"} > 16)) +\t(32 * count(validator_balance{service=\"validator.prysm-prater.dappnode\"} offset 30d > 16)))/(32 * avg_over_time(count(validator_balance{service=\"validator.prysm-prater.dappnode\"} > 16)[30d:]))) * (365/30)",
           "hide": false,
           "interval": "",
           "legendFormat": "annualized monthly return",
@@ -2865,7 +2865,7 @@
       ],
       "targets": [
         {
-          "expr": "label_replace(max by(pubkey) (validator_balance{service=\"validator.prater.dappnode\"}), \"pubkey_short\", \"$1\", \"pubkey\", \"(.{10}).*\") ",
+          "expr": "label_replace(max by(pubkey) (validator_balance{service=\"validator.prysm-prater.dappnode\"}), \"pubkey_short\", \"$1\", \"pubkey\", \"(.{10}).*\") ",
           "format": "table",
           "instant": true,
           "interval": "",
@@ -2873,7 +2873,7 @@
           "refId": "F"
         },
         {
-          "expr": "label_replace(max by(pubkey) (validator_successful_proposals{service=\"validator.prater.dappnode\"}), \"pubkey_short\", \"$1\", \"pubkey\", \"(.{10}).*\")  ",
+          "expr": "label_replace(max by(pubkey) (validator_successful_proposals{service=\"validator.prysm-prater.dappnode\"}), \"pubkey_short\", \"$1\", \"pubkey\", \"(.{10}).*\")  ",
           "format": "table",
           "instant": true,
           "interval": "",
@@ -2881,7 +2881,7 @@
           "refId": "E"
         },
         {
-          "expr": "label_replace(max by(pubkey) (validator_successful_attestations{service=\"validator.prater.dappnode\"}), \"pubkey_short\", \"$1\", \"pubkey\", \"(.{10}).*\")  ",
+          "expr": "label_replace(max by(pubkey) (validator_successful_attestations{service=\"validator.prysm-prater.dappnode\"}), \"pubkey_short\", \"$1\", \"pubkey\", \"(.{10}).*\")  ",
           "format": "table",
           "instant": true,
           "interval": "",
@@ -2889,7 +2889,7 @@
           "refId": "A"
         },
         {
-          "expr": "label_replace(max by(pubkey) (validator_successful_aggregations{service=\"validator.prater.dappnode\"}), \"pubkey_short\", \"$1\", \"pubkey\", \"(.{10}).*\") ",
+          "expr": "label_replace(max by(pubkey) (validator_successful_aggregations{service=\"validator.prysm-prater.dappnode\"}), \"pubkey_short\", \"$1\", \"pubkey\", \"(.{10}).*\") ",
           "format": "table",
           "instant": true,
           "interval": "",
@@ -2897,7 +2897,7 @@
           "refId": "C"
         },
         {
-          "expr": "label_replace(max by(pubkey) (validator_failed_attestations{service=\"validator.prater.dappnode\"}), \"pubkey_short\", \"$1\", \"pubkey\", \"(.{10}).*\") ",
+          "expr": "label_replace(max by(pubkey) (validator_failed_attestations{service=\"validator.prysm-prater.dappnode\"}), \"pubkey_short\", \"$1\", \"pubkey\", \"(.{10}).*\") ",
           "format": "table",
           "instant": true,
           "interval": "",
@@ -2905,7 +2905,7 @@
           "refId": "B"
         },
         {
-          "expr": "label_replace(max by(pubkey) (validator_failed_aggregations{service=\"validator.prater.dappnode\"}), \"pubkey_short\", \"$1\", \"pubkey\", \"(.{10}).*\") ",
+          "expr": "label_replace(max by(pubkey) (validator_failed_aggregations{service=\"validator.prysm-prater.dappnode\"}), \"pubkey_short\", \"$1\", \"pubkey\", \"(.{10}).*\") ",
           "format": "table",
           "instant": true,
           "interval": "",
@@ -2913,13 +2913,13 @@
           "refId": "D"
         },
         {
-          "expr": "label_replace(max by(pubkey) (validator_balance{service=\"validator.prater.dappnode\"}), \"pubkey\", \"$1\", \"pubkey_short\", \"(.{10}).*\") ",
+          "expr": "label_replace(max by(pubkey) (validator_balance{service=\"validator.prysm-prater.dappnode\"}), \"pubkey\", \"$1\", \"pubkey_short\", \"(.{10}).*\") ",
           "interval": "",
           "legendFormat": "",
           "refId": "G"
         },
         {
-          "expr": "label_replace(max by(pubkey) (validator_inclusion_distance{service=\"validator.prater.dappnode\"}), \"pubkey_short\", \"$1\", \"pubkey\", \"(.{10}).*\")  ",
+          "expr": "label_replace(max by(pubkey) (validator_inclusion_distance{service=\"validator.prysm-prater.dappnode\"}), \"pubkey_short\", \"$1\", \"pubkey\", \"(.{10}).*\")  ",
           "format": "table",
           "instant": true,
           "interval": "",
@@ -3203,10 +3203,10 @@
         "ymax": null,
         "ymin": null
       },
-      "tableColumn": "{instance=\"127.0.0.1:8080\", service=\"beacon-chain.prater.dappnode\"}",
+      "tableColumn": "{instance=\"127.0.0.1:8080\", service=\"beacon-chain.prysm-prater.dappnode\"}",
       "targets": [
         {
-          "expr": "(time()-process_start_time_seconds{service=\"beacon-chain.prater.dappnode\"})/3600",
+          "expr": "(time()-process_start_time_seconds{service=\"beacon-chain.prysm-prater.dappnode\"})/3600",
           "instant": true,
           "interval": "",
           "legendFormat": "",
@@ -3286,14 +3286,14 @@
       "pluginVersion": "7.0.0",
       "targets": [
         {
-          "expr": "sum(rate(log_entries_total{service=\"beacon-chain.prater.dappnode\", level=\"error\"}[$__range]))*3600",
+          "expr": "sum(rate(log_entries_total{service=\"beacon-chain.prysm-prater.dappnode\", level=\"error\"}[$__range]))*3600",
           "instant": false,
           "interval": "",
           "legendFormat": "errors",
           "refId": "A"
         },
         {
-          "expr": "sum(rate(log_entries_total{service=\"beacon-chain.prater.dappnode\", level=\"warning\"}[$__range]))*3600",
+          "expr": "sum(rate(log_entries_total{service=\"beacon-chain.prysm-prater.dappnode\", level=\"warning\"}[$__range]))*3600",
           "instant": false,
           "interval": "",
           "legendFormat": "warnings",
@@ -3376,10 +3376,10 @@
         "ymax": null,
         "ymin": null
       },
-      "tableColumn": "{instance=\"127.0.0.1:8081\", service=\"validator.prater.dappnode\"}",
+      "tableColumn": "{instance=\"127.0.0.1:8081\", service=\"validator.prysm-prater.dappnode\"}",
       "targets": [
         {
-          "expr": "(time()-process_start_time_seconds{service=\"validator.prater.dappnode\"})/3600",
+          "expr": "(time()-process_start_time_seconds{service=\"validator.prysm-prater.dappnode\"})/3600",
           "instant": true,
           "interval": "",
           "legendFormat": "",
@@ -3460,14 +3460,14 @@
       "pluginVersion": "7.0.0",
       "targets": [
         {
-          "expr": "sum(rate(log_entries_total{service=\"validator.prater.dappnode\", level=\"error\"}[$__range]))*3600",
+          "expr": "sum(rate(log_entries_total{service=\"validator.prysm-prater.dappnode\", level=\"error\"}[$__range]))*3600",
           "instant": false,
           "interval": "",
           "legendFormat": "errors",
           "refId": "B"
         },
         {
-          "expr": "sum(rate(log_entries_total{service=\"validator.prater.dappnode\", level=\"warning\"}[$__range]))*3600",
+          "expr": "sum(rate(log_entries_total{service=\"validator.prysm-prater.dappnode\", level=\"warning\"}[$__range]))*3600",
           "interval": "",
           "legendFormat": "warnings",
           "refId": "A"
@@ -3639,13 +3639,13 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "process_resident_memory_bytes{service=\"beacon-chain.prater.dappnode\"}",
+          "expr": "process_resident_memory_bytes{service=\"beacon-chain.prysm-prater.dappnode\"}",
           "interval": "",
           "legendFormat": "beacon memory",
           "refId": "F"
         },
         {
-          "expr": "process_resident_memory_bytes{service=\"validator.prater.dappnode\"}",
+          "expr": "process_resident_memory_bytes{service=\"validator.prysm-prater.dappnode\"}",
           "interval": "",
           "legendFormat": "validator memory",
           "refId": "G"
