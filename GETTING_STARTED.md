@@ -1,4 +1,4 @@
-Go to [prater.dappnode](http://prater.dappnode)
+Go to [prysm-prater.dappnode](http://prysm-prater.dappnode/)
 
 If you want to have the complete dashboard with all the metrics you will have to install [metrics-tools](http://my.dappnode/#/installer/metrics-tools.dnp.dappnode.eth)
 
