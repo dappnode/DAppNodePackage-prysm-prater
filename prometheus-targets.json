@@ -2,19 +2,19 @@
     {
         "labels": {
             "package": "prater.dnp.dappnode.eth",
-            "service": "beacon-chain.prater.dappnode"
+            "service": "beacon-chain.prysm-prater.dappnode"
         },
         "targets": [
-            "beacon-chain.prater.dappnode:8080"
+            "beacon-chain.prysm-prater.dappnode:8080"
         ]
     },
     {
         "labels": {
             "package": "prater.dnp.dappnode.eth",
-            "service": "validator.prater.dappnode"
+            "service": "validator.prysm-prater.dappnode"
         },
         "targets": [
-            "validator.prater.dappnode:8081"
+            "validator.prysm-prater.dappnode:8081"
         ]
     }
 ]
