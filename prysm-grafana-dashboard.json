@@ -3203,7 +3203,7 @@
         "ymax": null,
         "ymin": null
       },
-      "tableColumn": "{instance=\"127.0.0.1:8080\", service=\"beacon-chain.prysm-prater.dappnode\"}",
+      "tableColumn": "",
       "targets": [
         {
           "expr": "(time()-process_start_time_seconds{service=\"beacon-chain.prysm-prater.dappnode\"})/3600",
@@ -3376,7 +3376,7 @@
         "ymax": null,
         "ymin": null
       },
-      "tableColumn": "{instance=\"127.0.0.1:8081\", service=\"validator.prysm-prater.dappnode\"}",
+      "tableColumn": "",
       "targets": [
         {
           "expr": "(time()-process_start_time_seconds{service=\"validator.prysm-prater.dappnode\"})/3600",
