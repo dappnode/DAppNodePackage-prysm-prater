@@ -1,38 +1,23 @@
-FROM debian:buster-slim as binary
+## BUILDER
+FROM golang as builder
 
-ARG TARGETARCH
-ARG UPSTREAM_VERSION
-ENV DOWNLOAD_URL https://github.com/prysmaticlabs/prysm/releases/download
+# Generate validator binaries
+WORKDIR /usr/src/app
+RUN apt update && git clone https://github.com/prysmaticlabs/prysm.git
+WORKDIR /usr/src/app/prysm/cmd/validator
+RUN go build -o ./tmp/validator && chmod +x /usr/src/app/prysm/cmd/validator/tmp/validator
 
-RUN DEBIAN_FRONTEND=noninteractive \
-  apt update && apt install --assume-yes --no-install-recommends wget ca-certificates && \
-  wget -q $DOWNLOAD_URL/$UPSTREAM_VERSION/validator-$UPSTREAM_VERSION-linux-${TARGETARCH:-amd64} -O /usr/local/bin/validator && \
-  chmod +x  /usr/local/bin/validator
-
+## RUNNER
 FROM debian:buster-slim
 
 RUN apt update && \
-  apt install -y ca-certificates file git && \
+  apt install -y ca-certificates file git curl && \
   rm -rf /var/lib/apt/lists/*
 
-#Copy binaries from build stage
-COPY --from=binary /usr/local/bin/validator /usr/local/bin
+# Copy binaries from build stage
+COPY --from=builder /usr/src/app/prysm/cmd/validator/tmp/validator /usr/local/bin
 
+# Copy entrypoint script
+COPY entrypoint.sh /usr/local/bin
 
-# Must used escaped \"$VAR\" to accept spaces: --graffiti=\"$GRAFFITI\"
-ENTRYPOINT [ "sh", "-c", "exec validator \
-  --prater \
-  --datadir=/root/.eth2 \
-  --rpc-host 0.0.0.0 \
-  --monitoring-host 0.0.0.0 \
-  --beacon-rpc-provider=\"$BEACON_RPC_PROVIDER\" \
-  --beacon-rpc-gateway-provider=\"$BEACON_RPC_GATEWAY_PROVIDER\" \
-  --wallet-dir=/root/.eth2validators \
-  --wallet-password-file=/root/.eth2wallets/wallet-password.txt \
-  --write-wallet-password-on-web-onboarding \
-  --graffiti=\"$GRAFFITI\" \
-  --web \
-  --grpc-gateway-host=0.0.0.0 \
-  --grpc-gateway-port=80 \
-  --accept-terms-of-use \
-  $EXTRA_OPTS" ]
+ENTRYPOINT [ "entrypoint.sh" ]
