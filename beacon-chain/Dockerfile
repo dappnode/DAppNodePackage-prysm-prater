@@ -1,20 +1,20 @@
-## BUILDER
-FROM golang as builder
+FROM debian:buster-slim as binary
 
-# Generate beacon-chain binaries
-WORKDIR /usr/src/app
-RUN apt update && git clone https://github.com/prysmaticlabs/prysm.git
-WORKDIR /usr/src/app/prysm/cmd/beacon-chain
-RUN go build -o ./tmp/beacon-chain && \
+ARG TARGETARCH
+ARG UPSTREAM_VERSION
+ENV DOWNLOAD_URL https://github.com/prysmaticlabs/prysm/releases/download
+
+RUN DEBIAN_FRONTEND=noninteractive \
+  apt update && apt install --assume-yes --no-install-recommends wget ca-certificates && \
+  wget -q $DOWNLOAD_URL/$UPSTREAM_VERSION/beacon-chain-$UPSTREAM_VERSION-linux-${TARGETARCH:-amd64} -O /usr/local/bin/beacon-chain && \
   wget -q https://github.com/eth2-clients/eth2-networks/raw/master/shared/prater/genesis.ssz -O /tmp/genesis.ssz && \
-  chmod +x /usr/src/app/prysm/cmd/beacon-chain/tmp/beacon-chain
+  chmod +x  /usr/local/bin/beacon-chain
 
-## RUNNER
 FROM debian:buster-slim
  
-# Copy binaries from build stage
-COPY --from=builder /usr/src/app/prysm/cmd/beacon-chain/tmp/beacon-chain /usr/local/bin/beacon-chain
-COPY --from=builder /tmp/genesis.ssz /genesis.ssz
+#Copy binaries from build stage
+COPY --from=binary /usr/local/bin/beacon-chain /usr/local/bin/beacon-chain
+COPY --from=binary /tmp/genesis.ssz /genesis.ssz
 
 RUN apt update && \
   apt install -y ca-certificates file && \
