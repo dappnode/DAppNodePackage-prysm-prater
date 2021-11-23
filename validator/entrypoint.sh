@@ -3,24 +3,40 @@
 # Paths
 AUTH_TOKEN_DIR="/root/.eth2validators"
 AUTH_TOKEN_FILE="${AUTH_TOKEN_DIR}/auth-token"
+TOKEN=""
 
-# Generate JWT
-# --wallet-dir value   Path to a wallet directory on-disk for Prysm validator accounts (default: "/root/.eth2validators/prysm-wallet-v2")
-mkdir -p "${AUTH_TOKEN_DIR}"
-validator web generate-auth-token --wallet-dir=${AUTH_TOKEN_DIR} --accept-terms-of-use
+# Generate JWT if does not exist already
+if [ ! -f "${AUTH_TOKEN_FILE}" ]; then
+    echo "[INFO] generating JWT..."
+    mkdir -p "${AUTH_TOKEN_DIR}"
+    # --wallet-dir value   Path to a wallet directory on-disk for Prysm validator accounts (default: "/root/.eth2validators/prysm-wallet-v2")
+    validator web generate-auth-token --wallet-dir=${AUTH_TOKEN_DIR} --accept-terms-of-use || { echo "[ERROR] failed to generate JWT"; exit 1; }
+fi
 
-# Check if the file exists
-if [ -f "${AUTH_TOKEN_FILE}" ]; then
+# Print token
+TOKEN=$(sed -n 2p ${AUTH_TOKEN_FILE}) || { echo "[ERROR] failed to read JWT"; exit 1; }
+echo "[INFO] successfully detected JWT: ${TOKEN}"
+
+# Check if the token exists and post 
+# the url with the token to the dappmanager
+if [ ! -z "$TOKEN" ]; then
     # Post JWT to dappmanager
-    curl -X POST "http://my.dappnode/data-send?key=token&data=http://prysm-prater.dappnode/initialize?token=$(sed -n 2p ${AUTH_TOKEN_FILE})" || echo "Error posting the auth-token"
+    curl --connect-timeout 5 \
+        --max-time 10 \
+        --retry 5 \
+        --retry-delay 0 \
+        --retry-max-time 40 \
+        -X POST "http://my.dappnode/data-send?key=token&data=http://prysm-prater.dappnode/initialize?token=${TOKEN}" \
+        || { echo "[ERROR] failed to post JWT to dappmanager"; exit 1; }
+
 else
-    echo "Could not find auth token file"
+    { echo "[ERROR] could not find auth token file"; exit 1; }
 fi
 
 # Check vars 
-[ -z "$BEACON_RPC_PROVIDER" ] && echo "WARNING: BEACON_RPC_PROVIDER is not set" || echo "INFO: BEACON_RPC_PROVIDER ${BEACON_RPC_PROVIDER}"
-[ -z "$BEACON_RPC_GATEWAY_PROVIDER" ] && echo "WARNING: BEACON_RPC_GATEWAY_PROVIDER is not set" || echo "INFO: BEACON_RPC_GATEWAY_PROVIDER ${BEACON_RPC_GATEWAY_PROVIDER}"
-[ -z "$GRAFFITI" ] && echo "WARNING: GRAFFITI is not set" || echo "INFO: GRAFFITI ${GRAFFITI}"
+[ -z "$BEACON_RPC_PROVIDER" ] && { echo "[ERROR] BEACON_RPC_PROVIDER is not set"; exit 1; } || echo "[INFO] BEACON_RPC_PROVIDER ${BEACON_RPC_PROVIDER}"
+[ -z "$BEACON_RPC_GATEWAY_PROVIDER" ] && { echo "[ERROR] BEACON_RPC_GATEWAY_PROVIDER is not set"; exit 1; } || echo "[INFO] BEACON_RPC_GATEWAY_PROVIDER ${BEACON_RPC_GATEWAY_PROVIDER}"
+[ -z "$GRAFFITI" ] && echo "[WARN] GRAFFITI is not set" || echo "[INFO] GRAFFITI ${GRAFFITI}"
 
 # Must used escaped \"$VAR\" to accept spaces: --graffiti=\"$GRAFFITI\"
 exec -c validator \
