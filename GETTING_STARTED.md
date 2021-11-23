@@ -1,5 +1,5 @@
-Go to [prysm-prater.dappnode](http://prysm-prater.dappnode/)
+- **Is your first login?** use the link with the token attached below
 
-If you want to have the complete dashboard with all the metrics you will have to install [metrics-tools](http://my.dappnode/#/installer/metrics-tools.dnp.dappnode.eth)
+- If you have already logged in with the token go to [prysm-prater.dappnode](http://prysm-prater.dappnode/)
 
-Grafana dashboard thanks to amazing work of [metanull-operator](https://github.com/metanull-operator/eth2-grafana)
+- If you want to have the complete dashboard with all the metrics you will have to install [metrics-tools](http://my.dappnode/#/installer/metrics-tools.dnp.dappnode.eth) (Grafana dashboard thanks to amazing work of [metanull-operator](https://github.com/metanull-operator/eth2-grafana))
