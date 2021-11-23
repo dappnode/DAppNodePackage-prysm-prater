@@ -18,10 +18,10 @@
   "license": "GPL-3.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/dappnode/DAppNodePackage-prater.git"
+    "url": "git+https://github.com/dappnode/DAppNodePackage-prysm-prater.git"
   },
   "bugs": {
-    "url": "https://github.com/dappnode/DAppNodePackage-prater/issues"
+    "url": "https://github.com/dappnode/DAppNodePackage-prysm-prater/issues"
   },
   "requirements": {
     "minimumDappnodeVersion": "0.2.39"
@@ -37,7 +37,7 @@
   "links": {
     "ui": "http://prysm-prater.dappnode/",
     "homepage": "https://prylabs.net/participate?node=dappnode",
-    "readme": "https://github.com/dappnode/DAppNodePackage-prater",
+    "readme": "https://github.com/dappnode/DAppNodePackage-prysm-prater",
     "prysm": "https://prylabs.net"
   },
   "dependencies": {
