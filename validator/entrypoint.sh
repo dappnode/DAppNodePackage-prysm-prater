@@ -23,7 +23,7 @@ fi
 [ -z "$GRAFFITI" ] && echo "WARNING: GRAFFITI is not set" || echo "INFO: GRAFFITI ${GRAFFITI}"
 
 # Must used escaped \"$VAR\" to accept spaces: --graffiti=\"$GRAFFITI\"
-exec validator \
+exec -c validator \
   --prater \
   --datadir=/root/.eth2 \
   --rpc-host 0.0.0.0 \
