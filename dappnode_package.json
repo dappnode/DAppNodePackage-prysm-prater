@@ -5,7 +5,7 @@
   "upstreamRepo": "prysmaticlabs/prysm",
   "upstreamArg": "UPSTREAM_VERSION",
   "shortDescription": "Prysm prater ETH2.0 Beacon chain + validator",
-  "description": "Validate with prysm: a Go implementation of the Ethereum 2.0 Serenity protocol and open source project created by Prysmatic Labs. Beacon node which powers the beacon chain at the core of Ethereum 2.0\n\nIt includes a Grafana dashboard for the [DMS](http://my.dappnode/#/installer/dms.dnp.dappnode.eth) thanks to the amazing work of [metanull-operator](https://github.com/metanull-operator/eth2-grafana)",
+  "description": "Validate with prysm: a Go implementation of the Ethereum 2.0 Serenity protocol and open source project created by Prysmatic Labs. Beacon node which powers the beacon chain at the core of Ethereum 2.0\n\nIt includes a Grafana dashboard for the [DMS](http://my.dappnode/#/installer/dms.dnp.dappnode.eth) thanks to the amazing work of [metanull-operator](https://github.com/metanull-operator/eth2-grafana). This version of Prysm introduces a new method of authentication to access the Prysm WebUI.  The first time the package is started you will need to click on the link below next to the word token.  After opening the webUI with this token link you can access the webUI here at (prysm-prater.dappnode)[http://prysm-prater.dappnode] ",
   "type": "service",
   "architectures": ["linux/amd64"],
   "chain": "ethereum2-beacon-chain-prysm",
