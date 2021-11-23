@@ -49,7 +49,7 @@ exec -c validator \
   --wallet-dir=/root/.eth2validators \
   --wallet-password-file=/root/.eth2wallets/wallet-password.txt \
   --write-wallet-password-on-web-onboarding \
-  --graffiti=\"$GRAFFITI\" \
+  --graffiti="$GRAFFITI" \
   --web \
   --grpc-gateway-host=0.0.0.0 \
   --grpc-gateway-port=80 \
