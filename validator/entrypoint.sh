@@ -44,8 +44,8 @@ exec -c validator \
   --datadir=/root/.eth2 \
   --rpc-host 0.0.0.0 \
   --monitoring-host 0.0.0.0 \
-  --beacon-rpc-provider=${BEACON_RPC_PROVIDER} \
-  --beacon-rpc-gateway-provider=${BEACON_RPC_GATEWAY_PROVIDER} \
+  --beacon-rpc-provider="$BEACON_RPC_PROVIDER" \
+  --beacon-rpc-gateway-provider="$BEACON_RPC_GATEWAY_PROVIDER" \
   --wallet-dir=/root/.eth2validators \
   --wallet-password-file=/root/.eth2wallets/wallet-password.txt \
   --write-wallet-password-on-web-onboarding \

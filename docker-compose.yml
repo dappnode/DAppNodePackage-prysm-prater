@@ -23,6 +23,7 @@ services:
       args:
         UPSTREAM_VERSION: v2.0.3
     volumes:
+      - "validator-jwt:/root/.eth2validators/auth-token"
       - "validator-data:/root/"
     restart: unless-stopped
     environment:
@@ -33,3 +34,4 @@ services:
 volumes:
   beacon-chain-data: {}
   validator-data: {}
+  validator-jwt: {}
