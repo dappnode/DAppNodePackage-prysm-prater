@@ -500,7 +500,7 @@
       "pluginVersion": "7.0.0",
       "targets": [
         {
-          "expr": "p2p_peer_count{state=\"Connected\",service=\"beacon-chain.prater.dappnode\"}",
+          "expr": "p2p_peer_count{state=\"Connected\",service=\"beacon-chain.prysm-prater.dappnode\"}",
           "instant": true,
           "interval": "",
           "legendFormat": "",
@@ -1850,21 +1850,21 @@
       "pluginVersion": "7.0.0",
       "targets": [
         {
-          "expr": "validator_count{state=\"Active\",service=\"beacon-chain.prater.dappnode\"} ",
+          "expr": "validator_count{state=\"Active\",service=\"beacon-chain.prysm-prater.dappnode\"} ",
           "instant": true,
           "interval": "",
           "legendFormat": "active",
           "refId": "C"
         },
         {
-          "expr": "validator_count{state=\"Slashed\",service=\"beacon-chain.prater.dappnode\"} ",
+          "expr": "validator_count{state=\"Slashed\",service=\"beacon-chain.prysm-prater.dappnode\"} ",
           "instant": true,
           "interval": "",
           "legendFormat": "slashed",
           "refId": "B"
         },
         {
-          "expr": "validator_count{state=\"Exited\",service=\"beacon-chain.prater.dappnode\"} ",
+          "expr": "validator_count{state=\"Exited\",service=\"beacon-chain.prysm-prater.dappnode\"} ",
           "instant": true,
           "interval": "",
           "legendFormat": "exited",
@@ -1943,19 +1943,19 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "validator_count{state=\"Pending\",service=\"beacon-chain.prater.dappnode\"}",
+          "expr": "validator_count{state=\"Pending\",service=\"beacon-chain.prysm-prater.dappnode\"}",
           "interval": "",
           "legendFormat": "pending",
           "refId": "B"
         },
         {
-          "expr": "validator_count{state=\"Exiting\",service=\"beacon-chain.prater.dappnode\"}",
+          "expr": "validator_count{state=\"Exiting\",service=\"beacon-chain.prysm-prater.dappnode\"}",
           "interval": "",
           "legendFormat": "exiting",
           "refId": "A"
         },
         {
-          "expr": "validator_count{state=\"Slashing\",service=\"beacon-chain.prater.dappnode\"}",
+          "expr": "validator_count{state=\"Slashing\",service=\"beacon-chain.prysm-prater.dappnode\"}",
           "interval": "",
           "legendFormat": "slashing",
           "refId": "C"
@@ -2052,14 +2052,14 @@
       "pluginVersion": "7.0.0",
       "targets": [
         {
-          "expr": "validator_count{state=\"Pending\",service=\"beacon-chain.prater.dappnode\"}",
+          "expr": "validator_count{state=\"Pending\",service=\"beacon-chain.prysm-prater.dappnode\"}",
           "instant": true,
           "interval": "",
           "legendFormat": "pending",
           "refId": "B"
         },
         {
-          "expr": "validator_count{state=\"Exiting\",service=\"beacon-chain.prater.dappnode\"}",
+          "expr": "validator_count{state=\"Exiting\",service=\"beacon-chain.prysm-prater.dappnode\"}",
           "instant": true,
           "interval": "",
           "legendFormat": "exiting",
@@ -2524,7 +2524,7 @@
       "tableColumn": "eth",
       "targets": [
         {
-          "expr": "validators_total_balance{state=\"Active\",service=\"beacon-chain.prater.dappnode\"} / validator_count{state=\"Active\",service=\"beacon-chain.prater.dappnode\"} / 1000000000",
+          "expr": "validators_total_balance{state=\"Active\",service=\"beacon-chain.prysm-prater.dappnode\"} / validator_count{state=\"Active\",service=\"beacon-chain.prysm-prater.dappnode\"} / 1000000000",
           "interval": "",
           "legendFormat": "eth",
           "refId": "A"
@@ -2589,14 +2589,14 @@
       "pluginVersion": "7.0.0",
       "targets": [
         {
-          "expr": "((validator_count{state=\"Pending\",service=\"beacon-chain.prater.dappnode\"}/4)*6.4)",
+          "expr": "((validator_count{state=\"Pending\",service=\"beacon-chain.prysm-prater.dappnode\"}/4)*6.4)",
           "instant": true,
           "interval": "",
           "legendFormat": "pending",
           "refId": "B"
         },
         {
-          "expr": "((validator_count{state=\"Exiting\",service=\"beacon-chain.prater.dappnode\"}/4)*6.4)",
+          "expr": "((validator_count{state=\"Exiting\",service=\"beacon-chain.prysm-prater.dappnode\"}/4)*6.4)",
           "instant": true,
           "interval": "",
           "legendFormat": "exiting",
@@ -3076,7 +3076,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "p2p_peer_count{state=\"Connected\",service=\"beacon-chain.prater.dappnode\"}",
+          "expr": "p2p_peer_count{state=\"Connected\",service=\"beacon-chain.prysm-prater.dappnode\"}",
           "interval": "",
           "legendFormat": "peers",
           "refId": "A"
@@ -3203,7 +3203,7 @@
         "ymax": null,
         "ymin": null
       },
-      "tableColumn": "{instance=\"127.0.0.1:8080\", service=\"beacon-chain.prysm-prater.dappnode\"}",
+      "tableColumn": "",
       "targets": [
         {
           "expr": "(time()-process_start_time_seconds{service=\"beacon-chain.prysm-prater.dappnode\"})/3600",
@@ -3376,7 +3376,7 @@
         "ymax": null,
         "ymin": null
       },
-      "tableColumn": "{instance=\"127.0.0.1:8081\", service=\"validator.prysm-prater.dappnode\"}",
+      "tableColumn": "",
       "targets": [
         {
           "expr": "(time()-process_start_time_seconds{service=\"validator.prysm-prater.dappnode\"})/3600",
