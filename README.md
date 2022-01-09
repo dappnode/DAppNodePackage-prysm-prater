@@ -15,3 +15,4 @@ Grafana dashboard thanks to the amazing work of [metanull-operator](https://gith
 |      Updated       |   Champion/s   |
 | :----------------: | :------------: |
 | :heavy_check_mark: | @tropicar |
+
