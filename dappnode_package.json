@@ -8,7 +8,7 @@
   "description": "Validate with prysm: a Go implementation of the Ethereum 2.0 Serenity protocol and open source project created by Prysmatic Labs. Beacon node which powers the beacon chain at the core of Ethereum 2.0\n\nIt includes a Grafana dashboard for the [DMS](http://my.dappnode/#/installer/dms.dnp.dappnode.eth) thanks to the amazing work of [metanull-operator](https://github.com/metanull-operator/eth2-grafana)",
   "type": "service",
   "architectures": ["linux/amd64", "linux/arm64"],
-  "chain": "ethereum2-beacon-chain-prysm",
+  "chain": "ethereum-beacon-chain",
   "mainService": "validator",
   "author": "DAppNode Association <admin@dappnode.io> (https://github.com/dappnode)",
   "contributors": [
