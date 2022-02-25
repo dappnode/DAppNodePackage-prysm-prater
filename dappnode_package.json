@@ -24,7 +24,7 @@
     "url": "https://github.com/dappnode/DAppNodePackage-prysm-prater/issues"
   },
   "requirements": {
-    "minimumDappnodeVersion": "0.2.39"
+    "minimumDappnodeVersion": "0.2.52"
   },
   "backup": [
     {
@@ -35,12 +35,12 @@
   ],
   "categories": ["Blockchain", "ETH2.0"],
   "links": {
-    "ui": "http://prysm-prater.dappnode/",
     "homepage": "https://prysmaticlabs.com/",
     "readme": "https://github.com/dappnode/DAppNodePackage-prysm-prater",
     "docs": "https://docs.prylabs.network/docs/getting-started"
   },
   "dependencies": {
+    "web3signer-prater.dnp.dappnode.eth": "latest",
     "goerli-geth.dnp.dappnode.eth": "latest"
   }
 }
