@@ -69,10 +69,12 @@ function write_public_keys() {
     done
 }
 
-
 ########
 # MAIN #
 ########
+
+eth2-migrate.sh &
+wait $!
 
 # Check if the envs exist
 ensure_envs_exist
@@ -101,9 +103,6 @@ exec -c validator \
   --monitoring-host 0.0.0.0 \
   --beacon-rpc-provider="$BEACON_RPC_PROVIDER" \
   --beacon-rpc-gateway-provider="$BEACON_RPC_GATEWAY_PROVIDER" \
-  --wallet-dir=/root/.eth2validators \
-  --wallet-password-file=/root/.eth2wallets/wallet-password.txt \
-  --write-wallet-password-on-web-onboarding \
   --validators-external-signer-url=$HTTP_WEB3SIGNER \
   --validators-external-signer-public-keys=$PUBLIC_KEYS_COMMA_SEPARATED \
   --graffiti="$GRAFFITI" \
