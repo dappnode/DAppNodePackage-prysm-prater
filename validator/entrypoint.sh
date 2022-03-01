@@ -89,13 +89,16 @@ if [ ! -z "${PUBLIC_KEYS_PARSED}" ]; then
 
     # Create comma separated string of public keys
     echo "${INFO} creating comma separated string of public keys"
-    PUBLIC_KEYS_COMMA_SEPARATED=$(echo ${PUBLIC_KEYS_COMMA_SEPARATED} | tr ' ' ',')
+    PUBLIC_KEYS_COMMA_SEPARATED=$(echo ${PUBLIC_KEYS_PARSED} | tr ' ' ',')
+else
+    echo "${WARN} no public keys found"
 fi
 
 echo "${INFO} starting cronjob"
 cron
 
 # Must used escaped \"$VAR\" to accept spaces: --graffiti=\"$GRAFFITI\"
+# validator flags still require the branch develop to be merged
 exec -c validator \
   --prater \
   --datadir=/root/.eth2 \
@@ -105,7 +108,7 @@ exec -c validator \
   --beacon-rpc-gateway-provider="$BEACON_RPC_GATEWAY_PROVIDER" \
   --validators-external-signer-url=$HTTP_WEB3SIGNER \
   --validators-external-signer-public-keys=$PUBLIC_KEYS_COMMA_SEPARATED \
-  --graffiti="$GRAFFITI" \
+  --graffiti=\"$GRAFFITI\" \
   --grpc-gateway-host=0.0.0.0 \
   --grpc-gateway-port=80 \
   --accept-terms-of-use \

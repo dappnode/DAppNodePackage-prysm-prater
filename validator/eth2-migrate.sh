@@ -141,7 +141,7 @@ function create_request_body() {
 # - Docs: https://consensys.github.io/web3signer/web3signer-eth2.html#operation/KEYMANAGER_IMPORT
 function import_validators() {
     curl -X POST \
-        -d '${REQUEST_BODY}' \
+        -d ${REQUEST_BODY} \
         -H "Content-Type: application/json" \
         -H "Accept: application/json" \
         ${HTTP_WEB3SIGNER}/eth/v1/keystores || { echo "${ERROR} failed to import validators"; exit 1; }
