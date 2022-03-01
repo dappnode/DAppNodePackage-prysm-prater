@@ -4,15 +4,15 @@
 # - Implement curl response check
 # - Implement int tests
 # - Implement unit tests
-# - Implement eth2-migrate.sh condition
+# - Move slashing_protection data from old location (/root/.eth2validators/validator.db) to new location (/root/.eth2validators/prysm-wallet-v2/validator.db) ??
 
 #############
 # VARIABLES #
 #############
 
-ERROR="[ ERROR ]"
-WARN="[ WARN ]"
-INFO="[ INFO ]"
+ERROR="[ ERROR-migration ]"
+WARN="[ WARN-migration ]"
+INFO="[ INFO-migration ]"
 
 HTTP_WEB3SIGNER="http://web3signer.web3signer-prater.dappnode:9000"
 NETWORK="prater"
@@ -38,23 +38,19 @@ function ensure_requirements() {
     --retry-delay 2 \
     --retry-max-time 40 \
     "${HTTP_WEB3SIGNER}/upcheck" > /dev/null; then
-        echo "${ERROR} web3signer not available"
-        exit 1
+        { echo "${ERROR} web3signer not available, manual migration required"; empty_validator_volume; exit 1; }
     fi
 
     # Check if wallet directory exists
     if [ ! -d ${WALLET_DIR} ]; then
-        echo "${ERROR} wallet directory not found"
-        exit 1
+        { echo "${ERROR} wallet directory not found, manual migration required"; empty_validator_volume; exit 1; }
     fi
 
     # Check if wallet password file exists
     if [ ! -f ${WALLETPASSWORD_FILE} ]; then
-        echo "${ERROR} wallet password file not found"
-        exit 1
+        { echo "${ERROR} wallet password file not found, manual migration required"; empty_validator_volume; exit 1; }
     fi
 }
-
 
 # Get VALIDATORS_PUBKEYS as array of strings and as string comma separated
 function get_public_keys() {
@@ -79,16 +75,14 @@ function get_public_keys() {
         # Grep pubkeys
         VALIDATORS_PUBKEYS_ARRAY=$(echo ${VALIDATORS_PUBKEYS} | grep -o -E '0x[a-zA-Z0-9]{96}')
         # Convert to string comma separated
-        VALIDATORS_PUBKEYS_STRING=$(echo ${VALIDATORS_PUBKEYS_ARRAY} | tr ' ' ',')
+        PUBLIC_KEYS_COMMA_SEPARATED=$(echo ${VALIDATORS_PUBKEYS_ARRAY} | tr ' ' ',')
         if [ ! -z "$VALIDATORS_PUBKEYS" ]; then
             echo "${INFO} Validator pubkeys found: ${VALIDATORS_PUBKEYS}"
         else
-            echo "${WARN} no validators found, no migration needed"
-            exit 0
+            { echo "${WARN} no validators found, no migration needed"; empty_validator_volume; exit 0; }
         fi  
     else
-        echo "${ERROR} Failed to get validator pubkeys"
-        exit 1
+        { echo "${ERROR} validator accounts list failed, manual migration required"; empty_validator_volume; exit 1; }
     fi
 }
 
@@ -99,11 +93,11 @@ function export_keystores() {
         --wallet-password-file=${WALLETPASSWORD_FILE} \
         --backup-dir=${BACKUP_DIR} \
         --backup-password-file=${WALLETPASSWORD_FILE} \
-        --backup-public-keys=${VALIDATORS_PUBKEYS_STRING} \
+        --backup-public-keys=${PUBLIC_KEYS_COMMA_SEPARATED} \
         --${NETWORK} \
-        --accept-terms-of-use || { echo "${ERROR} failed to export keystores"; exit 1; }
+        --accept-terms-of-use || { echo "${ERROR} failed to export keystores, manual migration required"; empty_validator_volume; exit 1; }
 
-    unzip -d ${BACKUP_KEYSTORES_DIR} ${BACKUP_ZIP_FILE} || { echo "${ERROR} failed to unzip keystores"; exit 1; }
+    unzip -d ${BACKUP_KEYSTORES_DIR} ${BACKUP_ZIP_FILE} || { echo "${ERROR} failed to unzip keystores, manual migration required"; empty_validator_volume; exit 1; }
 }
 
 # Export slashing protection data 
@@ -112,12 +106,12 @@ function export_slashing_protection() {
         --datadir=${WALLET_DIR} \
         --slashing-protection-export-dir=${BACKUP_DIR} \
         --${NETWORK} \
-        --accept-terms-of-use || { echo "${ERROR} failed to export slashing protection"; exit 1; }
+        --accept-terms-of-use || { echo "${ERROR} failed to export slashing protection, manual migration required"; empty_validator_volume; exit 1; }
 }
 
 # Export walletpassword.txt
 function export_walletpassword() {
-    cp ${WALLETPASSWORD_FILE} ${BACKUP_WALLETPASSWORD_FILE} || { echo "${ERROR} failed to export walletpassword.txt"; exit 1; }
+    cp ${WALLETPASSWORD_FILE} ${BACKUP_WALLETPASSWORD_FILE} || { echo "${ERROR} failed to export walletpassword.txt, manual migration required"; empty_validator_volume; exit 1; }
 }
 
 # Create request body file
@@ -136,7 +130,6 @@ function create_request_body() {
     REQUEST_BODY=$(echo ${REQUEST_BODY} | jq -c ".slashing_protection += "$(echo ${SLASHING_DATA})"")
 }
 
-
 # Import validators with request body file
 # - Docs: https://consensys.github.io/web3signer/web3signer-eth2.html#operation/KEYMANAGER_IMPORT
 function import_validators() {
@@ -144,8 +137,12 @@ function import_validators() {
         -d ${REQUEST_BODY} \
         -H "Content-Type: application/json" \
         -H "Accept: application/json" \
-        ${HTTP_WEB3SIGNER}/eth/v1/keystores || { echo "${ERROR} failed to import validators"; exit 1; }
+        ${HTTP_WEB3SIGNER}/eth/v1/keystores || { echo "${ERROR} failed to import validators, manual migration required"; empty_validator_volume; exit 1; }
     echo "${INFO} validators imported"
+}
+
+function empty_validator_volume() {
+    rm -rf ${WALLET_DIR} || { echo "${ERROR} failed to remove wallet dir"; exit 1; }
 }
 
 ########
@@ -166,5 +163,7 @@ echo "${INFO} creating request body"
 create_request_body
 echo "${INFO} importing validators"
 import_validators
+echo "${INFO} removing wallet dir recursively"
+empty_validator_volume
 
 exit 0

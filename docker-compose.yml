@@ -24,16 +24,14 @@ services:
         UPSTREAM_VERSION: v2.0.6
     volumes:
       - "validator-data:/root/"
-      - "validator-keys:/root/public-keys"
     restart: unless-stopped
     environment:
       BEACON_RPC_PROVIDER: "beacon-chain.prysm-prater.dappnode:4000"
       BEACON_RPC_GATEWAY_PROVIDER: "beacon-chain.prysm-prater.dappnode:3500"
       HTTP_WEB3SIGNER: "http://web3signer.web3signer-prater.dappnode:9000"
-      PUBLIC_KEYS_FILE: /root/public-keys/public_keys.txt
+      PUBLIC_KEYS_FILE: /public_keys.txt
       GRAFFITI: validating_from_DAppNode
       EXTRA_OPTS: ""
 volumes:
   beacon-chain-data: {}
   validator-data: {}
-  validator-keys: {}

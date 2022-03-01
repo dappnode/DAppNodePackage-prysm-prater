@@ -1,2 +1,2 @@
 # Run cron job to fetch public keys and redirect output to stdout. This file has permissions 0644. This file must have empty line at the end
-* * * * * root /usr/local/bin/get-keys.sh > /proc/1/fd/1 2>&1
+* * * * * /usr/local/bin/get-keys.sh > /proc/1/fd/1 2>&1
