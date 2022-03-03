@@ -28,6 +28,7 @@ services:
       - "validator-data:/root/"
     restart: unless-stopped
     environment:
+      WALLET_DIR: "/root/.eth2validators"
       BEACON_RPC_PROVIDER: "beacon-chain.prysm-prater.dappnode:4000"
       BEACON_RPC_GATEWAY_PROVIDER: "beacon-chain.prysm-prater.dappnode:3500"
       HTTP_WEB3SIGNER: "http://web3signer.web3signer-prater.dappnode:9000"

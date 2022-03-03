@@ -12,11 +12,13 @@ PUBLIC_KEYS_COMMA_SEPARATED=""
 # - BEACON_RPC_GATEWAY_PROVIDER
 # - HTTP_WEB3SIGNER
 # - PUBLIC_KEYS_FILE
+# - WALLET_DIR
 function ensure_envs_exist() {
     [ -z "${BEACON_RPC_PROVIDER}" ] && { echo "${ERROR} BEACON_RPC_PROVIDER is not set"; exit 1; }
     [ -z "${BEACON_RPC_GATEWAY_PROVIDER}" ] && { echo "${ERROR} BEACON_RPC_GATEWAY_PROVIDER is not set"; exit 1; }
     [ -z "${HTTP_WEB3SIGNER}" ] && { echo "${ERROR} HTTP_WEB3SIGNER is not set"; exit 1; }
     [ -z "${PUBLIC_KEYS_FILE}" ] && { echo "${ERROR} PUBLIC_KEYS_FILE is not set"; exit 1; }
+    [ -z "${WALLET_DIR}" ] && { echo "${ERROR} WALLET_DIR is not set"; exit 1; }
 }
 
 # Get public keys from API keymanager: BASH ARRAY OF STRINGS
@@ -33,26 +35,28 @@ function ensure_envs_exist() {
 # - Service must exit with 1 to keep the service restarting until there are uploaded validators on the web3signer.
 # - Prysm is about to change this behaviour: https://github.com/prysmaticlabs/prysm/issues/10293
 function get_public_keys() {
-    if PUBLIC_KEYS_API=$(curl -s -X GET \
-    -H "Content-Type: application/json" \
-    --max-time 10 \
-    --retry 2 \
-    --retry-delay 2 \
-    --retry-max-time 40 \
-    "${HTTP_WEB3SIGNER}/eth/v1/keystores"); then
-        if PUBLIC_KEYS_API=$(echo ${PUBLIC_KEYS_API} | jq -r '.data[].validating_pubkey'); then
-            if [ ! -z "$PUBLIC_KEYS_API" ]; then
-                echo "${INFO} found public keys: $PUBLIC_KEYS_API"
+    # Try for 3 minutes    
+    while true; do
+        if PUBLIC_KEYS_API=$(curl -s -X GET \
+        -H "Content-Type: application/json" \
+        --retry 60 \
+        --retry-delay 3 \
+        --retry-connrefused \
+        "${HTTP_WEB3SIGNER}/eth/v1/keystores"); then
+            if PUBLIC_KEYS_API=$(echo ${PUBLIC_KEYS_API} | jq -r '.data[].validating_pubkey'); then
+                if [ ! -z "$PUBLIC_KEYS_API" ]; then
+                    { echo "${INFO} found public keys: $PUBLIC_KEYS_API"; break; }
+                else
+                    { echo "${WARN} no public keys found"; continue; }
+                fi
             else
-                { echo "${ERROR} no public keys found"; sleep 5; exit 1; }
+                { echo "${WARN} something wrong happened parsing the public keys"; continue; }
             fi
         else
-            { echo "${ERROR} something wrong happened parsing the public keys"; sleep 5; exit 1; }
+            { echo "${WARN} web3signer not available"; continue; }
+            
         fi
-    else
-        { echo "${ERROR} web3signer not available"; sleep 5; exit 1; }
-        
-    fi
+    done
 }
 
 # Clean old file and writes new public keys file
@@ -109,16 +113,16 @@ echo "${INFO} starting cronjob"
 cron
 
 # Must used escaped \"$VAR\" to accept spaces: --graffiti=\"$GRAFFITI\"
-# validator flags still require the branch develop to be merged
 exec -c validator \
   --prater \
-  --datadir=/root/.eth2 \
+  --datadir="$WALLET_DIR" \
+  --wallet-dir="$WALLET_DIR" \
   --rpc-host 0.0.0.0 \
   --monitoring-host 0.0.0.0 \
   --beacon-rpc-provider="$BEACON_RPC_PROVIDER" \
   --beacon-rpc-gateway-provider="$BEACON_RPC_GATEWAY_PROVIDER" \
-  --validators-external-signer-url=$HTTP_WEB3SIGNER \
-  --validators-external-signer-public-keys=$PUBLIC_KEYS_COMMA_SEPARATED \
+  --validators-external-signer-url="$HTTP_WEB3SIGNER" \
+  --validators-external-signer-public-keys="$PUBLIC_KEYS_COMMA_SEPARATED" \
   --graffiti=\"$GRAFFITI\" \
   --grpc-gateway-host=0.0.0.0 \
   --grpc-gateway-port=80 \

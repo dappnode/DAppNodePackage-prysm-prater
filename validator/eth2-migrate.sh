@@ -1,10 +1,11 @@
 #!/bin/bash
 
+# Exit on error
+set -e
+
 # TODO:
-# - Implement curl response check
 # - Implement int tests
 # - Implement unit tests
-# - Move slashing_protection data from old location (/root/.eth2validators/validator.db) to new location (/root/.eth2validators/prysm-wallet-v2/validator.db) ??
 
 #############
 # VARIABLES #
@@ -30,14 +31,19 @@ BACKUP_WALLETPASSWORD_FILE="${BACKUP_DIR}/walletpassword.txt"
 
 # Ensure requirements
 function ensure_requirements() {
-    # Check if web3signer is available: https://consensys.github.io/web3signer/web3signer-eth2.html#tag/Server-Statuss
-    if ! curl -s -X GET \
+    # Try for 3 minutes 
+    # Check if web3signer is available: https://consensys.github.io/web3signer/web3signer-eth2.html#tag/Server-Status
+    if [ $(curl -s -X GET \
     -H "Content-Type: application/json" \
-    --max-time 10 \
-    --retry 5 \
-    --retry-delay 2 \
-    --retry-max-time 40 \
-    "${HTTP_WEB3SIGNER}/upcheck" > /dev/null; then
+    --write-out '%{http_code}' \
+    --silent \
+    --output /dev/null \
+    --retry 30 \
+    --retry-delay 3 \
+    --retry-connrefused \
+    "${HTTP_WEB3SIGNER}/upcheck") == 200 ]; then
+        echo "${INFO} web3signer available"
+    else
         { echo "${ERROR} web3signer not available, manual migration required"; empty_validator_volume; exit 1; }
     fi
 
@@ -135,14 +141,27 @@ function create_request_body() {
 function import_validators() {
     curl -X POST \
         -d ${REQUEST_BODY} \
+        --retry 30 \
+        --retry-delay 3 \
+        --retry-connrefused \
         -H "Content-Type: application/json" \
         -H "Accept: application/json" \
         ${HTTP_WEB3SIGNER}/eth/v1/keystores || { echo "${ERROR} failed to import validators, manual migration required"; empty_validator_volume; exit 1; }
     echo "${INFO} validators imported"
 }
 
+# Remove all content except validator.db amd tosaccepted file
 function empty_validator_volume() {
-    rm -rf ${WALLET_DIR} || { echo "${ERROR} failed to remove wallet dir"; exit 1; }
+    # Moves tosaccepted file to walletdir
+    mv "/root/.eth2/tosaccepted" ${WALLET_DIR}/tosaccepted || echo "${WARN} failed to move tosaccepted file, manual migration required"
+    # Removes old --datadir. Not needed anymore
+    rm -rf "/root/.eth2" || echo "${WARN} failed to remove /root/.eth2"
+    # Removes old validator files: keystores, auth-token and walletpassword.txt
+    rm -rf "${WALLET_DIR}/auth-token" || echo "${WARN} failed to remove ${WALLET_DIR}/auth-token"
+    rm -rf "${WALLET_DIR}/direct" || echo "${WARN} failed to remove ${WALLET_DIR}/direct"
+    rm -rf "${WALLET_DIR}/walletpassword.txt" || echo "${WARN} failed to remove ${WALLET_DIR}/walletpassword.txt"
+    # Removes backup files
+    rm -rf "${BACKUP_DIR}" || echo "${WARN} failed to remove ${BACKUP_DIR}"
 }
 
 ########
