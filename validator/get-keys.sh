@@ -16,12 +16,12 @@ HTTP_WEB3SIGNER="http://web3signer.web3signer-prater.dappnode:9000"
 
 # Get public keys in format: string[]
 function get_public_keys() {
+    # Try for 30 seconds
     if PUBLIC_KEYS_API=$(curl -s -X GET \
     -H "Content-Type: application/json" \
-    --max-time 10 \
-    --retry 5 \
-    --retry-delay 2 \
-    --retry-max-time 40 \
+    --retry 10 \
+    --retry-delay 3 \
+    --retry-connrefused \
     "${HTTP_WEB3SIGNER}/eth/v1/keystores"); then
         if PUBLIC_KEYS_API=($(echo ${PUBLIC_KEYS_API} | jq -r '.data[].validating_pubkey')); then
             if [ ! -z "$PUBLIC_KEYS_API" ]; then
