@@ -8,7 +8,6 @@
 ERROR="[ ERROR-cronjob ]"
 WARN="[ WARN-cronjob ]"
 INFO="[ INFO-cronjob ]"
-DEBUG="[ DEBUG-cronjob ]"
 
 # This var must be set here and must be equal to the var defined in the compose file
 PUBLIC_KEYS_FILE="/public_keys.txt"
@@ -54,11 +53,7 @@ function read_old_public_keys() {
 #   - kill main process if public keys from file does not contain the public keys from the web3signer api
 #   - kill main process if bash array length different
 function compare_public_keys() { 
-    echo "${DEBUG} comparing public keys"
-    echo "${DEBUG} public keys from file: $PUBLIC_KEYS_OLD"
-    echo "${DEBUG} public keys from api: $PUBLIC_KEYS_API"
-    echo "${DEBUG} public keys length from file: ${#PUBLIC_KEYS_OLD[@]}"
-    echo "${DEBUG} public keys length from api: ${#PUBLIC_KEYS_API[@]}"
+    echo "${INFO} comparing public keys"
 
     # compare array lentghs
     if [ ${#PUBLIC_KEYS_OLD[@]} -ne ${#PUBLIC_KEYS_API[@]} ]; then

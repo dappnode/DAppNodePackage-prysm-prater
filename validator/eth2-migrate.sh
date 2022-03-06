@@ -19,7 +19,7 @@ HTTP_WEB3SIGNER="http://web3signer.web3signer-prater.dappnode:9000"
 NETWORK="prater"
 WALLET_DIR="/root/.eth2validators"
 WALLETPASSWORD_FILE="${WALLET_DIR}/walletpassword.txt"
-BACKUP_DIR="/root/.eth2validators/backup"
+BACKUP_DIR="${WALLET_DIR}/backup"
 BACKUP_ZIP_FILE="${BACKUP_DIR}/backup.zip"
 BACKUP_KEYSTORES_DIR="${BACKUP_DIR}/keystores" # Directory where the keystores are stored in format: keystore_0.json keystore_1.json ...
 BACKUP_SLASHING_FILE="${BACKUP_DIR}/slashing_protection.json"
@@ -44,7 +44,7 @@ function ensure_requirements() {
     "${HTTP_WEB3SIGNER}/upcheck") == 200 ]; then
         echo "${INFO} web3signer available"
     else
-        { echo "${ERROR} web3signer not available, manual migration required"; empty_validator_volume; exit 1; }
+        { echo "${ERROR} web3signer not available after 3 minutes, manual migration required"; empty_validator_volume; exit 1; }
     fi
 
     # Check if wallet directory exists

@@ -45,6 +45,7 @@ function get_public_keys() {
         "${HTTP_WEB3SIGNER}/eth/v1/keystores"); then
             if PUBLIC_KEYS_API=$(echo ${PUBLIC_KEYS_API} | jq -r '.data[].validating_pubkey'); then
                 if [ ! -z "$PUBLIC_KEYS_API" ]; then
+                    PUBLIC_KEYS_COMMA_SEPARATED=$(echo ${PUBLIC_KEYS_API} | tr ' ' ',')
                     { echo "${INFO} found public keys: $PUBLIC_KEYS_API"; break; }
                 else
                     { echo "${WARN} no public keys found"; continue; }
@@ -87,8 +88,8 @@ ensure_envs_exist
 
 # Migrate if required
 validator accounts list \
-    --wallet-dir="/root/.eth2validators" \
-    --wallet-password-file="/root/.eth2validators/walletpassword.txt" \
+    --wallet-dir="$WALLET_DIR" \
+    --wallet-password-file="${WALLET_DIR}/walletpassword.txt" \
     --prater \
     --accept-terms-of-use \
     && { echo "${INFO} found validators, starging migration"; eth2-migrate.sh & wait $!; } \
@@ -101,10 +102,6 @@ if [ ! -z "${PUBLIC_KEYS_API}" ]; then
     # Write public keys to file
     echo "${INFO} writing public keys file"
     write_public_keys
-
-    # Create comma separated string of public keys
-    echo "${INFO} creating comma separated string of public keys"
-    PUBLIC_KEYS_COMMA_SEPARATED=$(echo ${PUBLIC_KEYS_API} | tr ' ' ',')
 else
     echo "${WARN} no public keys found"
 fi
