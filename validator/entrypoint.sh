@@ -60,14 +60,15 @@ function get_public_keys() {
     done
 }
 
-# Clean old file and writes new public keys file
+function clean_public_keys() {
+    rm -rf ${PUBLIC_KEYS_FILE}
+    touch ${PUBLIC_KEYS_FILE}
+}
+
+# Writes public keys
 # - by new line separated
 # - creates file if it does not exist
 function write_public_keys() {
-    # Clean file
-    rm -rf ${PUBLIC_KEYS_FILE}
-    touch ${PUBLIC_KEYS_FILE}
-
     echo "${INFO} writing public keys to file"
     for PUBLIC_KEY in ${PUBLIC_KEYS_API}; do
         if [ ! -z "${PUBLIC_KEY}" ]; then
@@ -97,6 +98,9 @@ validator accounts list \
 
 # Get public keys from API keymanager
 get_public_keys
+
+# Clean old public keys
+clean_public_keys
 
 if [ ! -z "${PUBLIC_KEYS_API}" ]; then
     # Write public keys to file
