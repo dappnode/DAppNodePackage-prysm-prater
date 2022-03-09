@@ -8,27 +8,26 @@
 ERROR="[ ERROR-cronjob ]"
 WARN="[ WARN-cronjob ]"
 INFO="[ INFO-cronjob ]"
-DEBUG="[ DEBUG-cronjob ]"
 
 # This var must be set here and must be equal to the var defined in the compose file
-PUBLIC_KEYS_FILE="/root/public-keys/public_keys.txt"
+PUBLIC_KEYS_FILE="/public_keys.txt"
 HTTP_WEB3SIGNER="http://web3signer.web3signer-prater.dappnode:9000"
 
 # Get public keys in format: string[]
 function get_public_keys() {
-    if PUBLIC_KEYS=$(curl -s -X GET \
+    # Try for 30 seconds
+    if PUBLIC_KEYS_API=$(curl -s -X GET \
     -H "Content-Type: application/json" \
-    --max-time 10 \
-    --retry 5 \
-    --retry-delay 2 \
-    --retry-max-time 40 \
+    --retry 10 \
+    --retry-delay 3 \
+    --retry-connrefused \
     "${HTTP_WEB3SIGNER}/eth/v1/keystores"); then
-        if PUBLIC_KEYS_PARSED=$(echo ${PUBLIC_KEYS} | jq -r '.data[].validating_pubkey'); then
-            if [ ! -z "$PUBLIC_KEYS_PARSED" ]; then
-                echo "${INFO} found public keys: $PUBLIC_KEYS_PARSED"
+        if PUBLIC_KEYS_API=($(echo ${PUBLIC_KEYS_API} | jq -r '.data[].validating_pubkey')); then
+            if [ ! -z "$PUBLIC_KEYS_API" ]; then
+                echo "${INFO} found public keys: $PUBLIC_KEYS_API"
             else
                 echo "${WARN} no public keys found"
-                PUBLIC_KEYS_PARSED=()
+                PUBLIC_KEYS_API=()
             fi
         else
             { echo "${ERROR} something wrong happened parsing the public keys"; exit 1; }
@@ -54,36 +53,31 @@ function read_old_public_keys() {
 #   - kill main process if public keys from file does not contain the public keys from the web3signer api
 #   - kill main process if bash array length different
 function compare_public_keys() { 
-    echo "${DEBUG} comparing public keys"
-    echo "${DEBUG} public keys from file: $PUBLIC_KEYS_OLD"
-    echo "${DEBUG} public keys from api: $PUBLIC_KEYS_PARSED"
-    echo "${DEBUG} public keys length from file: ${#PUBLIC_KEYS_OLD[@]}"
-    echo "${DEBUG} public keys length from api: ${#PUBLIC_KEYS_PARSED[@]}"
+    echo "${INFO} comparing public keys"
 
     # compare array lentghs
-    if [ ${#PUBLIC_KEYS_OLD[@]} -ne ${#PUBLIC_KEYS_PARSED[@]} ]; then
+    if [ ${#PUBLIC_KEYS_OLD[@]} -ne ${#PUBLIC_KEYS_API[@]} ]; then
         echo "${WARN} public keys from file and api are different. Killing process to restart"
         kill 1
         exit 0
     else
-        if [ ${#PUBLIC_KEYS_PARSED[@]} -eq 0 ]; then
+        if [ ${#PUBLIC_KEYS_API[@]} -eq 0 ]; then
             echo "${INFO} public keys from file and api are empty. Not comparision needed"
             exit 0
         else
             echo "${INFO} same number of public keys, comparing"
+                # Compare public keys
+            for i in "${PUBLIC_KEYS_OLD[@]}"; do
+                if [[ "${PUBLIC_KEYS_API[@]}" =~ "${i}" ]]; then
+                    echo "${INFO} public key ${i} found in api"
+                else
+                    echo "${WARN} public key ${i} from file not found in api. Killing process to restart"
+                    kill 1
+                    exit 0
+                fi
+            done
         fi
     fi
-
-    # Compare public keys
-    for i in "${PUBLIC_KEYS_OLD[@]}"; do
-        if [[ "${PUBLIC_KEYS_PARSED[@]}" =~ "${i}" ]]; then
-            echo "${INFO} public key ${i} found in api"
-        else
-            echo "${WARN} public key ${i} from file not found in api. Killing process to restart"
-            kill 1
-            exit 0
-        fi
-    done
 }
 
 ########
