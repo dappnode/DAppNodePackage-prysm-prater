@@ -1,0 +1,38 @@
+###########
+# BUILDER #
+###########
+FROM golang as builder
+
+ARG BRANCH
+
+WORKDIR /usr/src/app
+RUN apt update && git clone https://github.com/prysmaticlabs/prysm.git
+RUN cd prysm && git checkout $BRANCH
+WORKDIR /usr/src/app/prysm/cmd/validator
+RUN go build -o ./tmp/validator && chmod +x /usr/src/app/prysm/cmd/validator/tmp/validator
+
+##########
+# RUNNER #
+##########
+FROM debian:buster-slim
+
+RUN apt update && \
+  apt install -y ca-certificates file git curl cron jq unzip && \
+  rm -rf /var/lib/apt/lists/*
+
+#Copy binaries from build stage
+COPY --from=builder /usr/src/app/prysm/cmd/validator/tmp/validator /usr/local/bin
+
+# Setup cronjob
+COPY get-keys-cron /etc/cron.d/
+COPY get-keys.sh /usr/local/bin/get-keys.sh
+# Apply cron job
+RUN crontab /etc/cron.d/get-keys-cron
+
+# Copy migration script
+COPY eth2-migrate.sh /usr/local/bin
+
+# Copy entrypoint script
+COPY entrypoint.sh /usr/local/bin
+
+ENTRYPOINT [ "/usr/local/bin/entrypoint.sh" ]

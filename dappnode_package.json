@@ -1,6 +1,6 @@
 {
   "name": "prysm-prater.dnp.dappnode.eth",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "upstreamVersion": "v2.0.6",
   "upstreamRepo": "prysmaticlabs/prysm",
   "upstreamArg": "UPSTREAM_VERSION",
@@ -24,7 +24,7 @@
     "url": "https://github.com/dappnode/DAppNodePackage-prysm-prater/issues"
   },
   "requirements": {
-    "minimumDappnodeVersion": "0.2.39"
+    "minimumDappnodeVersion": "0.2.51"
   },
   "backup": [
     {
@@ -35,7 +35,7 @@
   ],
   "categories": ["Blockchain", "ETH2.0"],
   "links": {
-    "ui": "http://prysm-prater.dappnode/",
+    "ui": "http://ui.web3signer-prater.dappnode?signer_url=http://web3signer.web3signer-prater.dappnode:9000",
     "homepage": "https://prysmaticlabs.com/",
     "readme": "https://github.com/dappnode/DAppNodePackage-prysm-prater",
     "docs": "https://docs.prylabs.network/docs/getting-started"
