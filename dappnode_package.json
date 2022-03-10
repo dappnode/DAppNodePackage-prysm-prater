@@ -40,7 +40,6 @@
     "docs": "https://docs.prylabs.network/docs/getting-started"
   },
   "dependencies": {
-    "web3signer-prater.dnp.dappnode.eth": "latest",
     "goerli-geth.dnp.dappnode.eth": "latest"
   }
 }

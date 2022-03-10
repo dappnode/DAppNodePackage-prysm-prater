@@ -20,13 +20,15 @@ services:
     image: "validator.prysm-prater.dnp.dappnode.eth:0.2.0"
     build:
       context: validator
+      dockerfile: Dockerfile.dev
       args:
         UPSTREAM_VERSION: v2.0.6
+        BRANCH: develop
     volumes:
       - "validator-data:/root/"
     restart: unless-stopped
     environment:
-      WALLET_DIR: "/root/.eth2validators"
+      WALLET_DIR: /root/.eth2validators
       BEACON_RPC_PROVIDER: "beacon-chain.prysm-prater.dappnode:4000"
       BEACON_RPC_GATEWAY_PROVIDER: "beacon-chain.prysm-prater.dappnode:3500"
       HTTP_WEB3SIGNER: "http://web3signer.web3signer-prater.dappnode:9000"
