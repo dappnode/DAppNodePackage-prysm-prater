@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Exit on error
-set -e
+set -eo pipefail
 
 # TODO:
 # - Implement int tests
@@ -125,13 +125,13 @@ function export_walletpassword() {
 # - It cannot be used as environment variable because the slashing data might be too big resulting in the error: Error list too many arguments
 # - Exit if request body file cannot be created
 function create_request_body_file() {
-    echo '{}' | jq '{ keystores: [], passwords: [], slashing_data: "" }' > $REQUEST_BODY_FILE || { echo "${ERROR} failed to create request body empty object, manual migration required"; empty_validator_volume; exit 1; }
-    KEYSTORE_FILES=$(ls ${BACKUP_KEYSTORES_DIR}/*.json) || { echo "${ERROR} failed to create get keystores files, manual migration required"; empty_validator_volume; exit 1; }
+    echo '{}' | jq '{ keystores: [], passwords: [], slashing_protection: "" }' > $REQUEST_BODY_FILE
+    KEYSTORE_FILES=$(ls ${BACKUP_KEYSTORES_DIR}/*.json)
     for KEYSTORE_FILE in ${KEYSTORE_FILES}; do
-        echo $(jq --slurpfile keystore ${KEYSTORE_FILE} '.keystores += $keystore' ${REQUEST_BODY_FILE}) >${REQUEST_BODY_FILE} || { echo "${ERROR} failed to append keystore to request body, manual migration required"; empty_validator_volume; exit 1; }
-        echo $(jq --arg walletpassword "$(cat ${BACKUP_WALLETPASSWORD_FILE})" '.passwords += [$walletpassword]' ${REQUEST_BODY_FILE}) >${REQUEST_BODY_FILE} || { echo "${ERROR} failed to append walletpassword to request body, manual migration required"; empty_validator_volume; exit 1; }
+        echo $(jq --slurpfile keystore ${KEYSTORE_FILE} '.keystores += [$keystore[0]|tojson]' ${REQUEST_BODY_FILE}) >${REQUEST_BODY_FILE}
+        echo $(jq --arg walletpassword "$(cat ${BACKUP_WALLETPASSWORD_FILE})" '.passwords += [$walletpassword]' ${REQUEST_BODY_FILE}) >${REQUEST_BODY_FILE}
     done
-    echo $(jq --slurpfile slashing_data $BACKUP_SLASHING_FILE '.slashing_data |= $slashing_data[0]' $REQUEST_BODY_FILE) >${REQUEST_BODY_FILE} || { echo "${ERROR} failed to create request body, manual migration required"; empty_validator_volume; exit 1; }
+    echo $(jq --slurpfile slashing $BACKUP_SLASHING_FILE '.slashing_protection |= [$slashing[0]|tojson][0]' $REQUEST_BODY_FILE) >${REQUEST_BODY_FILE} 
 }
 
 # Import validators with request body file
@@ -165,6 +165,13 @@ function empty_validator_volume() {
 ########
 # MAIN #
 ########
+
+error_handling() {
+  echo 'Error raised. Cleaning validator volume and exiting'
+  empty_validator_volume
+}
+
+trap 'error_handling' ERR
 
 echo "${INFO} ensuring requirements"
 ensure_requirements
