@@ -24,6 +24,7 @@ BACKUP_ZIP_FILE="${BACKUP_DIR}/backup.zip"
 BACKUP_KEYSTORES_DIR="${BACKUP_DIR}/keystores" # Directory where the keystores are stored in format: keystore_0.json keystore_1.json ...
 BACKUP_SLASHING_FILE="${BACKUP_DIR}/slashing_protection.json"
 BACKUP_WALLETPASSWORD_FILE="${BACKUP_DIR}/walletpassword.txt"
+REQUEST_BODY_FILE="${BACKUP_DIR}/request_body.json"
 
 #############
 # FUNCTIONS #
@@ -121,26 +122,23 @@ function export_walletpassword() {
 }
 
 # Create request body file
-function create_request_body() {
-    REQUEST_BODY="$( echo '{}' | jq -c '{ keystores: [], passwords: [], slashing_protection: "" }' )"
-    KEYSTORE_FILES=$(ls ${BACKUP_KEYSTORES_DIR}/*.json)
+# - It cannot be used as environment variable because the slashing data might be too big resulting in the error: Error list too many arguments
+# - Exit if request body file cannot be created
+function create_request_body_file() {
+    echo '{}' | jq '{ keystores: [], passwords: [], slashing_data: "" }' > $REQUEST_BODY_FILE || { echo "${ERROR} failed to create request body empty object, manual migration required"; empty_validator_volume; exit 1; }
+    KEYSTORE_FILES=$(ls ${BACKUP_KEYSTORES_DIR}/*.json) || { echo "${ERROR} failed to create get keystores files, manual migration required"; empty_validator_volume; exit 1; }
     for KEYSTORE_FILE in ${KEYSTORE_FILES}; do
-        KEYSTORE_DATA=$(jq @json <<< $(cat ${KEYSTORE_FILE}))
-        # Append keystores to request body
-        REQUEST_BODY=$(echo ${REQUEST_BODY} | jq -c ".keystores += ["$(echo ${KEYSTORE_DATA})"]")
-        # Append passwords to request body
-        REQUEST_BODY=$(echo ${REQUEST_BODY} | jq -c ".passwords += [\"$(cat ${WALLETPASSWORD_FILE})\"]")
+        echo $(jq --slurpfile keystore ${KEYSTORE_FILE} '.keystores += $keystore' ${REQUEST_BODY_FILE}) >${REQUEST_BODY_FILE} || { echo "${ERROR} failed to append keystore to request body, manual migration required"; empty_validator_volume; exit 1; }
+        echo $(jq --arg walletpassword "$(cat ${BACKUP_WALLETPASSWORD_FILE})" '.passwords += [$walletpassword]' ${REQUEST_BODY_FILE}) >${REQUEST_BODY_FILE} || { echo "${ERROR} failed to append walletpassword to request body, manual migration required"; empty_validator_volume; exit 1; }
     done
-    # Append slashing protection to request body
-    SLASHING_DATA=$(jq @json <<< $(cat ${BACKUP_SLASHING_FILE}))
-    REQUEST_BODY=$(echo ${REQUEST_BODY} | jq -c ".slashing_protection += "$(echo ${SLASHING_DATA})"")
+    echo $(jq --slurpfile slashing_data $BACKUP_SLASHING_FILE '.slashing_data |= $slashing_data[0]' $REQUEST_BODY_FILE) >${REQUEST_BODY_FILE} || { echo "${ERROR} failed to create request body, manual migration required"; empty_validator_volume; exit 1; }
 }
 
 # Import validators with request body file
 # - Docs: https://consensys.github.io/web3signer/web3signer-eth2.html#operation/KEYMANAGER_IMPORT
 function import_validators() {
     curl -X POST \
-        -d ${REQUEST_BODY} \
+        -d @${REQUEST_BODY_FILE} \
         --retry 30 \
         --retry-delay 3 \
         --retry-connrefused \
@@ -179,7 +177,7 @@ export_slashing_protection
 echo "${INFO} exporting walletpassword.txt"
 export_walletpassword
 echo "${INFO} creating request body"
-create_request_body
+create_request_body_file
 echo "${INFO} importing validators"
 import_validators
 echo "${INFO} removing wallet dir recursively"
