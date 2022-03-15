@@ -1,4 +1,4 @@
-FROM debian:buster-slim as binary
+FROM debian:bullseye-slim as binary
 
 ARG TARGETARCH
 ARG UPSTREAM_VERSION
@@ -10,7 +10,7 @@ RUN DEBIAN_FRONTEND=noninteractive \
   wget -q https://github.com/eth-clients/eth2-networks/raw/master/shared/prater/genesis.ssz -O /tmp/genesis.ssz && \
   chmod +x  /usr/local/bin/beacon-chain
 
-FROM debian:buster-slim
+FROM debian:bullseye-slim
  
 #Copy binaries from build stage
 COPY --from=binary /usr/local/bin/beacon-chain /usr/local/bin/beacon-chain

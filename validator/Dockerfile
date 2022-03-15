@@ -1,4 +1,4 @@
-FROM debian:buster-slim as binary
+FROM debian:bullseye-slim as binary
 
 ARG TARGETARCH
 ARG UPSTREAM_VERSION
@@ -9,7 +9,7 @@ RUN DEBIAN_FRONTEND=noninteractive \
   wget -q $DOWNLOAD_URL/$UPSTREAM_VERSION/validator-$UPSTREAM_VERSION-linux-${TARGETARCH:-amd64} -O /usr/local/bin/validator && \
   chmod +x  /usr/local/bin/validator
 
-FROM debian:buster-slim
+FROM debian:bullseye-slim
 
 RUN apt update && \
   apt install -y ca-certificates file git curl cron jq unzip supervisor && \

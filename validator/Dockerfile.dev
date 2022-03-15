@@ -14,7 +14,7 @@ RUN go build -o ./tmp/validator && chmod +x /usr/src/app/prysm/cmd/validator/tmp
 ##########
 # RUNNER #
 ##########
-FROM debian:buster-slim
+FROM debian:bullseye-slim
 
 RUN apt update && \
   apt install -y ca-certificates file git curl cron jq unzip supervisor && \
