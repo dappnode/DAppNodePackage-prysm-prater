@@ -36,6 +36,7 @@ function ensure_requirements() {
     # Check if web3signer is available: https://consensys.github.io/web3signer/web3signer-eth2.html#tag/Server-Status
     if [ $(curl -s -X GET \
     -H "Content-Type: application/json" \
+    -H "Host: validator.prysm-prater.dappnode" \
     --write-out '%{http_code}' \
     --silent \
     --output /dev/null \
@@ -144,6 +145,7 @@ function import_validators() {
         --retry-connrefused \
         -H "Content-Type: application/json" \
         -H "Accept: application/json" \
+        -H "Host: validator.prysm-prater.dappnode" \
         ${HTTP_WEB3SIGNER}/eth/v1/keystores || { echo "${ERROR} failed to import validators, manual migration required"; empty_validator_volume; exit 1; }
     echo "${INFO} validators imported"
 }

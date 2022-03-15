@@ -19,6 +19,7 @@ function get_public_keys() {
     # Try for 30 seconds
     if PUBLIC_KEYS_API=$(curl -s -X GET \
     -H "Content-Type: application/json" \
+    -H "Host: validator.prysm-prater.dappnode" \
     --retry 10 \
     --retry-delay 3 \
     --retry-connrefused \
