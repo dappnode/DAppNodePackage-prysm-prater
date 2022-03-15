@@ -4,15 +4,9 @@ ERROR="[ ERROR ]"
 WARN="[ WARN ]"
 INFO="[ INFO ]"
 
-# Var used to start the teku validator: pubkeys must be comma separated
+# Var used to start the validator: pubkeys must be comma separated
 PUBLIC_KEYS_COMMA_SEPARATED=""
 
-# Checks the following vars exist or exits:
-# - BEACON_RPC_PROVIDER
-# - BEACON_RPC_GATEWAY_PROVIDER
-# - HTTP_WEB3SIGNER
-# - PUBLIC_KEYS_FILE
-# - WALLET_DIR
 function ensure_envs_exist() {
     [ -z "${BEACON_RPC_PROVIDER}" ] && { echo "${ERROR} BEACON_RPC_PROVIDER is not set"; exit 1; }
     [ -z "${BEACON_RPC_GATEWAY_PROVIDER}" ] && { echo "${ERROR} BEACON_RPC_GATEWAY_PROVIDER is not set"; exit 1; }
@@ -84,7 +78,6 @@ function write_public_keys() {
 # MAIN #
 ########
 
-# Check if the envs exist
 ensure_envs_exist
 
 # Migrate if required
@@ -96,36 +89,17 @@ validator accounts list \
     && { echo "${INFO} found validators, starging migration"; eth2-migrate.sh & wait $!; } \
     || { echo "${INFO} validators not found, no migration needed"; }
 
-# Get public keys from API keymanager
 get_public_keys
 
-# Clean old public keys
 clean_public_keys
 
-if [ ! -z "${PUBLIC_KEYS_API}" ]; then
-    # Write public keys to file
-    echo "${INFO} writing public keys file"
+if [ ! -z "${PUBLIC_KEYS_COMMA_SEPARATED}" ]; then
+    echo "${INFO} set autostart as true"
+    sed -i 's/autostart=false/autostart=true/g' /etc/supervisor/conf.d/supervisord.conf
+    echo "${INFO} write public keys"
     write_public_keys
 else
-    echo "${WARN} no public keys found"
+    echo "${WARN} no public keys found, validator will not start"
 fi
 
-echo "${INFO} starting cronjob"
-cron
-
-# Must used escaped \"$VAR\" to accept spaces: --graffiti=\"$GRAFFITI\"
-exec -c validator \
-  --prater \
-  --datadir="$WALLET_DIR" \
-  --wallet-dir="$WALLET_DIR" \
-  --rpc-host 0.0.0.0 \
-  --monitoring-host 0.0.0.0 \
-  --beacon-rpc-provider="$BEACON_RPC_PROVIDER" \
-  --beacon-rpc-gateway-provider="$BEACON_RPC_GATEWAY_PROVIDER" \
-  --validators-external-signer-url="$HTTP_WEB3SIGNER" \
-  --validators-external-signer-public-keys="$PUBLIC_KEYS_COMMA_SEPARATED" \
-  --graffiti=\"$GRAFFITI\" \
-  --grpc-gateway-host=0.0.0.0 \
-  --grpc-gateway-port=80 \
-  --accept-terms-of-use \
-  ${EXTRA_OPTS}
+exec -c supervisord -c 
