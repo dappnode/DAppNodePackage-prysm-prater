@@ -13,6 +13,7 @@ function ensure_envs_exist() {
     [ -z "${HTTP_WEB3SIGNER}" ] && { echo "${ERROR} HTTP_WEB3SIGNER is not set"; exit 1; }
     [ -z "${PUBLIC_KEYS_FILE}" ] && { echo "${ERROR} PUBLIC_KEYS_FILE is not set"; exit 1; }
     [ -z "${WALLET_DIR}" ] && { echo "${ERROR} WALLET_DIR is not set"; exit 1; }
+    [ -z "${SUPERVISOR_CONF}" ] && { echo "${ERROR} SUPERVISOR_CONF is not set"; exit 1; }
 }
 
 # Get public keys from API keymanager: BASH ARRAY OF STRINGS
@@ -40,21 +41,28 @@ function get_public_keys() {
         "${HTTP_WEB3SIGNER}/eth/v1/keystores"); then
             if PUBLIC_KEYS_API=$(echo ${PUBLIC_KEYS_API} | jq -r '.data[].validating_pubkey'); then
                 if [ ! -z "$PUBLIC_KEYS_API" ]; then
+                    # Ensure validator will autostart
                     PUBLIC_KEYS_COMMA_SEPARATED=$(echo ${PUBLIC_KEYS_API} | tr ' ' ',')
-                    { echo "${INFO} found public keys: $PUBLIC_KEYS_API"; break; }
+                    sed -i 's/autostart=false/autostart=true/g' $SUPERVISOR_CONF
+                    write_public_keys
+                    { echo "${INFO} found public keys: $PUBLIC_KEYS_COMMA_SEPARATED"; break; }
                 else
                     { echo "${WARN} no public keys found"; continue; }
                 fi
+            elif [ "$(echo ${PUBLIC_KEYS_API} | jq -r '.message')" == *"Host not authorized"* ]; then
+                # Ensure validator will not autostart
+                echo "${WARN} the current client is not authorized to access the web3signer api"
+                sed -i 's/autostart=true/autostart=false/g' $SUPERVISOR_CONF
             else
                 { echo "${WARN} something wrong happened parsing the public keys"; continue; }
             fi
         else
             { echo "${WARN} web3signer not available"; continue; }
-            
         fi
     done
 }
 
+# Ensure file will exists
 function clean_public_keys() {
     rm -rf ${PUBLIC_KEYS_FILE}
     touch ${PUBLIC_KEYS_FILE}
@@ -90,17 +98,9 @@ validator accounts list \
     && { echo "${INFO} found validators, starging migration"; eth2-migrate.sh & wait $!; } \
     || { echo "${INFO} validators not found, no migration needed"; }
 
-get_public_keys
-
 clean_public_keys
 
-if [ ! -z "${PUBLIC_KEYS_COMMA_SEPARATED}" ]; then
-    echo "${INFO} set autostart as true"
-    sed -i 's/autostart=false/autostart=true/g' /etc/supervisor/conf.d/supervisord.conf
-    echo "${INFO} write public keys"
-    write_public_keys
-else
-    echo "${WARN} no public keys found, validator will not start"
-fi
+get_public_keys
 
-exec supervisord -c /etc/supervisor/conf.d/supervisord.conf
+# Execute supervisor with current environment!
+exec supervisord -c $SUPERVISOR_CONF
