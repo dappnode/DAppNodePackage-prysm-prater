@@ -32,29 +32,36 @@ function ensure_envs_exist() {
 function get_public_keys() {
     # Try for 3 minutes    
     while true; do
-        if PUBLIC_KEYS_API=$(curl -s -X GET \
+        if WEB3SIGNER_RESPONSE=$(curl -s -X GET \
         -H "Content-Type: application/json" \
         -H "Host: validator.prysm-prater.dappnode" \
         --retry 60 \
         --retry-delay 3 \
         --retry-connrefused \
         "${HTTP_WEB3SIGNER}/eth/v1/keystores"); then
-            if PUBLIC_KEYS_API=$(echo ${PUBLIC_KEYS_API} | jq -r '.data[].validating_pubkey'); then
-                if [ ! -z "$PUBLIC_KEYS_API" ]; then
-                    # Ensure validator will autostart
-                    PUBLIC_KEYS_COMMA_SEPARATED=$(echo ${PUBLIC_KEYS_API} | tr ' ' ',')
+            # Check host is not authorized
+            if [ "$(echo ${WEB3SIGNER_RESPONSE} | jq -r '.message')" == *"Host not authorized"* ]; then
+                echo "${WARN} the current client is not authorized to access the web3signer api"
+                sed -i 's/autostart=true/autostart=false/g' $SUPERVISOR_CONF
+                break
+            fi
+
+            if [ "$(echo ${WEB3SIGNER_RESPONSE} | jq -r '.data[].validating_pubkey')" == "null" ]; then
+                echo "${WARN} error getting public keys from web3signer"
+                sed -i 's/autostart=true/autostart=false/g' $SUPERVISOR_CONF
+                break
+            elif [ "$(echo ${WEB3SIGNER_RESPONSE} | jq -r '.data[].validating_pubkey')" != "null" ]; then
+                PUBLIC_KEYS_COMMA_SEPARATED=$(echo ${WEB3SIGNER_RESPONSE} | jq -r '.data[].validating_pubkey')
+                if [ -z "${PUBLIC_KEYS_COMMA_SEPARATED}" ]; then
+                    sed -i 's/autostart=true/autostart=false/g' $SUPERVISOR_CONF
+                    { echo "${WARN} no public keys found on web3signer"; break; }
+                else 
                     sed -i 's/autostart=false/autostart=true/g' $SUPERVISOR_CONF
                     write_public_keys
                     { echo "${INFO} found public keys: $PUBLIC_KEYS_COMMA_SEPARATED"; break; }
-                else
-                    { echo "${WARN} no public keys found"; continue; }
                 fi
-            elif [ "$(echo ${PUBLIC_KEYS_API} | jq -r '.message')" == *"Host not authorized"* ]; then
-                # Ensure validator will not autostart
-                echo "${WARN} the current client is not authorized to access the web3signer api"
-                sed -i 's/autostart=true/autostart=false/g' $SUPERVISOR_CONF
             else
-                { echo "${WARN} something wrong happened parsing the public keys"; continue; }
+                { echo "${WARN} something wrong happened parsing the public keys"; break; }
             fi
         else
             { echo "${WARN} web3signer not available"; continue; }

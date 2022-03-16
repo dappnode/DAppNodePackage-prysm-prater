@@ -17,26 +17,36 @@ VALIDATOR_STATUS=$(supervisorctl -u dummy -p dummy status validator | awk '{prin
 # Get public keys in format: string[]
 function get_public_keys() {
     # Try for 30 seconds
-    if PUBLIC_KEYS_API=$(curl -s -X GET \
+    if WEB3SIGNER_RESPONSE=$(curl -s -X GET \
     -H "Content-Type: application/json" \
     -H "Host: validator.prysm-prater.dappnode" \
     --retry 10 \
     --retry-delay 3 \
     --retry-connrefused \
     "${HTTP_WEB3SIGNER}/eth/v1/keystores"); then
-        if PUBLIC_KEYS_API=($(echo ${PUBLIC_KEYS_API} | jq -r '.data[].validating_pubkey')); then
-            if [ ! -z "$PUBLIC_KEYS_API" ]; then
-                echo "${INFO} found public keys: $PUBLIC_KEYS_API"
-            else
-                echo "${WARN} no public keys found"
-                PUBLIC_KEYS_API=()
-            fi
-        elif [ "$(echo ${PUBLIC_KEYS_API} | jq -r '.message')" == *"Host not authorized"* ]; then
+        if [ "$(echo ${WEB3SIGNER_RESPONSE} | jq -r '.message')" == *"Host not authorized"* ]; then
             echo "${WARN} the current client is not authorized to access the web3signer api"
             if [ "$VALIDATOR_STATUS" != "STOPPED" ]; then
                 echo "${INFO} stopping validator"
                 supervisorctl stop validator || { echo "${ERROR} could not stop validator"; exit 1; }
+            fi
+            exit 0
+        fi
+
+        if [ "$(echo ${WEB3SIGNER_RESPONSE} | jq -r '.data[].validating_pubkey')" == "null" ]; then
+            echo "${WARN} error getting public keys from web3signer api"
+            PUBLIC_KEYS_API=()
+        elif [ "$(echo ${WEB3SIGNER_RESPONSE} | jq -r '.data[].validating_pubkey')" != "null" ]; then
+            PUBLIC_KEYS_API=$(echo ${WEB3SIGNER_RESPONSE} | jq -r '.data[].validating_pubkey')
+            if [ -z "${PUBLIC_KEYS_API}" ]; then
+                echo "${INFO} no public keys found in web3signer api"
+                if [ "$VALIDATOR_STATUS" != "STOPPED" ]; then
+                    echo "${INFO} stopping validator"
+                    supervisorctl stop validator || { echo "${ERROR} could not stop validator"; exit 1; }
+                fi
                 exit 0
+            else
+                echo "${INFO} found public keys: $PUBLIC_KEYS_API"
             fi
         else
             { echo "${ERROR} something wrong happened parsing the public keys"; exit 1; }
