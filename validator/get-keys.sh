@@ -76,7 +76,7 @@ function write_public_keys() {
     echo "${INFO} writing public keys to file"
     for PUBLIC_KEY in ${PUBLIC_KEYS_API}; do
         if [ ! -z "${PUBLIC_KEY}" ]; then
-            echo "${INFO} adding public key: $PUBLIC_KEY"
+            echo "${INFO} adding public key: $PUBLIC_KEY"    
             echo "${PUBLIC_KEY}" >> ${PUBLIC_KEYS_FILE}
         else
             echo "${WARN} empty public key"
@@ -133,7 +133,7 @@ function compare_public_keys() {
             ;;
         *) # BACKOFF EXITED UNKNOWN FATAL
             echo "${ERROR} unknown status: ${VALIDATOR_STATUS}"
-            supervisorctl reload
+            supervisorctl -u dummy -p dummy reload
             exit 1
             ;;
     esac

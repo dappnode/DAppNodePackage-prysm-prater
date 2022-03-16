@@ -80,9 +80,7 @@ function get_public_keys() {
     --wallet-password-file=${WALLETPASSWORD_FILE} \
     --${NETWORK} \
     --accept-terms-of-use); then
-        # Grep pubkeys
         VALIDATORS_PUBKEYS_ARRAY=$(echo ${VALIDATORS_PUBKEYS} | grep -o -E '0x[a-zA-Z0-9]{96}')
-        # Convert to string comma separated
         PUBLIC_KEYS_COMMA_SEPARATED=$(echo ${VALIDATORS_PUBKEYS_ARRAY} | tr ' ' ',')
         if [ ! -z "$VALIDATORS_PUBKEYS" ]; then
             echo "${INFO} Validator pubkeys found: ${VALIDATORS_PUBKEYS}"
