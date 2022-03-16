@@ -1,7 +1,7 @@
 version: "3.4"
 services:
   beacon-chain:
-    image: "beacon-chain.prysm-prater.dnp.dappnode.eth:0.2.0"
+    image: "beacon-chain.prysm-prater.dnp.dappnode.eth:1.0.0"
     build:
       context: beacon-chain
       args:
@@ -17,7 +17,7 @@ services:
       CORSDOMAIN: "http://prysm-prater.dappnode"
       EXTRA_OPTS: ""
   validator:
-    image: "validator.prysm-prater.dnp.dappnode.eth:0.2.0"
+    image: "validator.prysm-prater.dnp.dappnode.eth:1.0.0"
     build:
       context: validator
       dockerfile: Dockerfile.dev

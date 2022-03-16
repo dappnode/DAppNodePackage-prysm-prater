@@ -103,4 +103,4 @@ else
     echo "${WARN} no public keys found, validator will not start"
 fi
 
-exec -c supervisord -c 
+exec -c supervisord -c /etc/supervisor/conf.d/supervisord.conf
