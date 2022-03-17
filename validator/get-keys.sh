@@ -33,7 +33,7 @@ function get_public_keys() {
                     echo "${INFO} no public keys found in web3signer api"
                     if [ "$VALIDATOR_STATUS" != "STOPPED" ]; then
                         echo "${INFO} stopping validator"
-                        supervisorctl stop validator || { echo "${ERROR} could not stop validator"; exit 1; }
+                        supervisorctl -u dummy -p dummy stop validator || { echo "${ERROR} could not stop validator"; exit 1; }
                     fi
                     exit 0
                 else
@@ -45,7 +45,7 @@ function get_public_keys() {
                     echo "${WARN} client not authorized to access the web3signer api"
                     if [ "$VALIDATOR_STATUS" != "STOPPED" ]; then
                         echo "${INFO} stopping validator"
-                        supervisorctl stop validator || { echo "${ERROR} could not stop validator"; exit 1; }
+                        supervisorctl -u dummy -p dummy stop validator || { echo "${ERROR} could not stop validator"; exit 1; }
                     fi
                     exit 0
                 fi
