@@ -7,6 +7,9 @@ ERROR="[ ERROR-cronjob ]"
 WARN="[ WARN-cronjob ]"
 INFO="[ INFO-cronjob ]"
 
+CLIENT="prysm"
+NETWORK="prater"
+
 # This var must be set here and must be equal to the var defined in the compose file
 PUBLIC_KEYS_FILE="/public_keys.txt"
 HTTP_WEB3SIGNER="http://web3signer.web3signer-prater.dappnode:9000"
@@ -14,43 +17,44 @@ HTTP_WEB3SIGNER="http://web3signer.web3signer-prater.dappnode:9000"
 # Validator service status: http://supervisord.org/subprocess.html
 VALIDATOR_STATUS=$(supervisorctl -u dummy -p dummy status validator | awk '{print $2}')
 
-# Get public keys in format: string[]
+# Get public keys from web3signer API
 function get_public_keys() {
     # Try for 30 seconds
-    if WEB3SIGNER_RESPONSE=$(curl -s -X GET \
-    -H "Content-Type: application/json" \
-    -H "Host: validator.prysm-prater.dappnode" \
-    --retry 10 \
-    --retry-delay 3 \
-    --retry-connrefused \
-    "${HTTP_WEB3SIGNER}/eth/v1/keystores"); then
-        if [ "$(echo ${WEB3SIGNER_RESPONSE} | jq -r '.message')" == *"Host not authorized"* ]; then
-            echo "${WARN} the current client is not authorized to access the web3signer api"
-            if [ "$VALIDATOR_STATUS" != "STOPPED" ]; then
-                echo "${INFO} stopping validator"
-                supervisorctl stop validator || { echo "${ERROR} could not stop validator"; exit 1; }
-            fi
-            exit 0
-        fi
+    if WEB3SIGNER_RESPONSE=$(curl -s -w "%{http_code}" -X GET -H "Content-Type: application/json" -H "Host: validator.${CLIENT}-${NETWORK}.dappnode" \
+    --retry 10 --retry-delay 3 --retry-connrefused "${HTTP_WEB3SIGNER}/eth/v1/keystores"); then
 
-        if [ "$(echo ${WEB3SIGNER_RESPONSE} | jq -r '.data[].validating_pubkey')" == "null" ]; then
-            echo "${WARN} error getting public keys from web3signer api"
-            PUBLIC_KEYS_API=()
-        elif [ "$(echo ${WEB3SIGNER_RESPONSE} | jq -r '.data[].validating_pubkey')" != "null" ]; then
-            PUBLIC_KEYS_API=$(echo ${WEB3SIGNER_RESPONSE} | jq -r '.data[].validating_pubkey')
-            if [ -z "${PUBLIC_KEYS_API}" ]; then
-                echo "${INFO} no public keys found in web3signer api"
-                if [ "$VALIDATOR_STATUS" != "STOPPED" ]; then
-                    echo "${INFO} stopping validator"
-                    supervisorctl stop validator || { echo "${ERROR} could not stop validator"; exit 1; }
+        HTTP_CODE=${WEB3SIGNER_RESPONSE: -3}
+        CONTENT=$(echo ${WEB3SIGNER_RESPONSE} | head -c-4)
+
+        case ${HTTP_CODE} in
+            200)
+                PUBLIC_KEYS_API=$(echo ${CONTENT} | jq -r 'try .data[].validating_pubkey')
+                if [ -z "${PUBLIC_KEYS_API}" ]; then
+                    echo "${INFO} no public keys found in web3signer api"
+                    if [ "$VALIDATOR_STATUS" != "STOPPED" ]; then
+                        echo "${INFO} stopping validator"
+                        supervisorctl stop validator || { echo "${ERROR} could not stop validator"; exit 1; }
+                    fi
+                    exit 0
+                else
+                    echo "${INFO} found public keys: $PUBLIC_KEYS_API"
                 fi
-                exit 0
-            else
-                echo "${INFO} found public keys: $PUBLIC_KEYS_API"
-            fi
-        else
-            { echo "${ERROR} something wrong happened parsing the public keys"; exit 1; }
-        fi
+                ;;
+            403)
+                if [[ "${CONTENT}" == *"Host not authorized"* ]]; then
+                    echo "${WARN} client not authorized to access the web3signer api"
+                    if [ "$VALIDATOR_STATUS" != "STOPPED" ]; then
+                        echo "${INFO} stopping validator"
+                        supervisorctl stop validator || { echo "${ERROR} could not stop validator"; exit 1; }
+                    fi
+                    exit 0
+                fi
+                { echo "${ERROR} ${CONTENT} HTTP code ${HTTP_CODE} from ${HTTP_WEB3SIGNER}"; exit 1; }
+                ;;
+            *)
+                { echo "${ERROR} ${CONTENT} HTTP code ${HTTP_CODE} from ${HTTP_WEB3SIGNER}"; exit 1; }
+                ;;
+        esac
     else
         { echo "${ERROR} web3signer not available"; exit 1; }
     fi
@@ -132,7 +136,7 @@ function compare_public_keys() {
             exit 0
             ;;
         *) # BACKOFF EXITED UNKNOWN FATAL
-            echo "${ERROR} unknown status: ${VALIDATOR_STATUS}"
+            echo "${ERROR} unexpected status: ${VALIDATOR_STATUS}"
             supervisorctl -u dummy -p dummy reload
             exit 1
             ;;

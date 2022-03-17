@@ -4,6 +4,9 @@ ERROR="[ ERROR ]"
 WARN="[ WARN ]"
 INFO="[ INFO ]"
 
+CLIENT="prysm"
+NETWORK="prater"
+
 function ensure_envs_exist() {
     [ -z "${BEACON_RPC_PROVIDER}" ] && { echo "${ERROR} BEACON_RPC_PROVIDER is not set"; exit 1; }
     [ -z "${BEACON_RPC_GATEWAY_PROVIDER}" ] && { echo "${ERROR} BEACON_RPC_GATEWAY_PROVIDER is not set"; exit 1; }
@@ -13,7 +16,6 @@ function ensure_envs_exist() {
     [ -z "${SUPERVISOR_CONF}" ] && { echo "${ERROR} SUPERVISOR_CONF is not set"; exit 1; }
 }
 
-# Get public keys from API keymanager: BASH ARRAY OF STRINGS
 # - Endpoint: http://web3signer.web3signer-prater.dappnode:9000/eth/v1/keystores
 # - Returns:
 # { "data": [{
@@ -25,37 +27,36 @@ function ensure_envs_exist() {
 function get_public_keys() {
     # Try for 3 minutes    
     while true; do
-        if WEB3SIGNER_RESPONSE=$(curl -s -X GET \
-        -H "Content-Type: application/json" \
-        -H "Host: validator.prysm-prater.dappnode" \
-        --retry 60 \
-        --retry-delay 3 \
-        --retry-connrefused \
-        "${HTTP_WEB3SIGNER}/eth/v1/keystores"); then
-            # Check host is not authorized
-            if [ "$(echo ${WEB3SIGNER_RESPONSE} | jq -r '.message')" == *"Host not authorized"* ]; then
-                echo "${WARN} the current client is not authorized to access the web3signer api"
-                sed -i 's/autostart=true/autostart=false/g' $SUPERVISOR_CONF
-                break
-            fi
+        if WEB3SIGNER_RESPONSE=$(curl -s -w "%{http_code}" -X GET -H "Content-Type: application/json" -H "Host: validator.${CLIENT}-${NETWORK}.dappnode" \
+        --retry 60 --retry-delay 3 --retry-connrefused "${HTTP_WEB3SIGNER}/eth/v1/keystores"); then
 
-            if [ "$(echo ${WEB3SIGNER_RESPONSE} | jq -r '.data[].validating_pubkey')" == "null" ]; then
-                echo "${WARN} error getting public keys from web3signer"
-                sed -i 's/autostart=true/autostart=false/g' $SUPERVISOR_CONF
-                break
-            elif [ "$(echo ${WEB3SIGNER_RESPONSE} | jq -r '.data[].validating_pubkey')" != "null" ]; then
-                PUBLIC_KEYS_API=$(echo ${WEB3SIGNER_RESPONSE} | jq -r '.data[].validating_pubkey')
-                if [ -z "${PUBLIC_KEYS_API}" ]; then
-                    sed -i 's/autostart=true/autostart=false/g' $SUPERVISOR_CONF
-                    { echo "${WARN} no public keys found on web3signer"; break; }
-                else 
-                    sed -i 's/autostart=false/autostart=true/g' $SUPERVISOR_CONF
-                    write_public_keys
-                    { echo "${INFO} found public keys: $PUBLIC_KEYS_API"; break; }
-                fi
-            else
-                { echo "${WARN} something wrong happened parsing the public keys"; break; }
-            fi
+            HTTP_CODE=${WEB3SIGNER_RESPONSE: -3}
+            CONTENT=$(echo ${WEB3SIGNER_RESPONSE} | head -c-4)
+
+            case ${HTTP_CODE} in
+                200)
+                    PUBLIC_KEYS_API=$(echo ${CONTENT} | jq -r 'try .data[].validating_pubkey')
+                    if [ -z "${PUBLIC_KEYS_API}" ]; then
+                        sed -i 's/autostart=true/autostart=false/g' $SUPERVISOR_CONF
+                        { echo "${WARN} no public keys found on web3signer"; break; }
+                    else 
+                        sed -i 's/autostart=false/autostart=true/g' $SUPERVISOR_CONF
+                        write_public_keys
+                        { echo "${INFO} found public keys: $PUBLIC_KEYS_API"; break; }
+                    fi
+                    ;;
+                403)
+                    if [[ "${CONTENT}" == *"Host not authorized"* ]]; then
+                        sed -i 's/autostart=true/autostart=false/g' $SUPERVISOR_CONF
+                        { echo "${WARN} client not authorized to access the web3signer api"; break; }
+                    fi
+                    break
+                    ;;
+                *)
+                    { echo "${ERROR} ${CONTENT} HTTP code ${HTTP_CODE} from ${HTTP_WEB3SIGNER}"; break; }
+                    ;;
+            esac
+            break
         else
             { echo "${WARN} web3signer not available"; continue; }
         fi
