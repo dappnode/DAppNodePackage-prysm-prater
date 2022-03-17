@@ -14,10 +14,10 @@ RUN go build -o ./tmp/validator && chmod +x /usr/src/app/prysm/cmd/validator/tmp
 ##########
 # RUNNER #
 ##########
-FROM debian:buster-slim
+FROM debian:bullseye-slim
 
 RUN apt update && \
-  apt install -y ca-certificates file git curl cron jq unzip && \
+  apt install -y ca-certificates file git curl cron jq unzip supervisor && \
   rm -rf /var/lib/apt/lists/*
 
 #Copy binaries from build stage
@@ -34,5 +34,8 @@ COPY eth2-migrate.sh /usr/local/bin
 
 # Copy entrypoint script
 COPY entrypoint.sh /usr/local/bin
+
+# Copy supervisor config
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 ENTRYPOINT [ "/usr/local/bin/entrypoint.sh" ]

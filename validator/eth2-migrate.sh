@@ -36,6 +36,7 @@ function ensure_requirements() {
     # Check if web3signer is available: https://consensys.github.io/web3signer/web3signer-eth2.html#tag/Server-Status
     if [ $(curl -s -X GET \
     -H "Content-Type: application/json" \
+    -H "Host: validator.prysm-prater.dappnode" \
     --write-out '%{http_code}' \
     --silent \
     --output /dev/null \
@@ -79,9 +80,7 @@ function get_public_keys() {
     --wallet-password-file=${WALLETPASSWORD_FILE} \
     --${NETWORK} \
     --accept-terms-of-use); then
-        # Grep pubkeys
         VALIDATORS_PUBKEYS_ARRAY=$(echo ${VALIDATORS_PUBKEYS} | grep -o -E '0x[a-zA-Z0-9]{96}')
-        # Convert to string comma separated
         PUBLIC_KEYS_COMMA_SEPARATED=$(echo ${VALIDATORS_PUBKEYS_ARRAY} | tr ' ' ',')
         if [ ! -z "$VALIDATORS_PUBKEYS" ]; then
             echo "${INFO} Validator pubkeys found: ${VALIDATORS_PUBKEYS}"
@@ -144,6 +143,7 @@ function import_validators() {
         --retry-connrefused \
         -H "Content-Type: application/json" \
         -H "Accept: application/json" \
+        -H "Host: validator.prysm-prater.dappnode" \
         ${HTTP_WEB3SIGNER}/eth/v1/keystores || { echo "${ERROR} failed to import validators, manual migration required"; empty_validator_volume; exit 1; }
     echo "${INFO} validators imported"
 }
