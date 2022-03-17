@@ -4,9 +4,6 @@ ERROR="[ ERROR ]"
 WARN="[ WARN ]"
 INFO="[ INFO ]"
 
-# Var used to start the validator: pubkeys must be comma separated
-PUBLIC_KEYS_COMMA_SEPARATED=""
-
 function ensure_envs_exist() {
     [ -z "${BEACON_RPC_PROVIDER}" ] && { echo "${ERROR} BEACON_RPC_PROVIDER is not set"; exit 1; }
     [ -z "${BEACON_RPC_GATEWAY_PROVIDER}" ] && { echo "${ERROR} BEACON_RPC_GATEWAY_PROVIDER is not set"; exit 1; }
@@ -47,14 +44,14 @@ function get_public_keys() {
                 sed -i 's/autostart=true/autostart=false/g' $SUPERVISOR_CONF
                 break
             elif [ "$(echo ${WEB3SIGNER_RESPONSE} | jq -r '.data[].validating_pubkey')" != "null" ]; then
-                PUBLIC_KEYS_COMMA_SEPARATED=$(echo ${WEB3SIGNER_RESPONSE} | jq -r '.data[].validating_pubkey')
-                if [ -z "${PUBLIC_KEYS_COMMA_SEPARATED}" ]; then
+                PUBLIC_KEYS_API=$(echo ${WEB3SIGNER_RESPONSE} | jq -r '.data[].validating_pubkey')
+                if [ -z "${PUBLIC_KEYS_API}" ]; then
                     sed -i 's/autostart=true/autostart=false/g' $SUPERVISOR_CONF
                     { echo "${WARN} no public keys found on web3signer"; break; }
                 else 
                     sed -i 's/autostart=false/autostart=true/g' $SUPERVISOR_CONF
                     write_public_keys
-                    { echo "${INFO} found public keys: $PUBLIC_KEYS_COMMA_SEPARATED"; break; }
+                    { echo "${INFO} found public keys: $PUBLIC_KEYS_API"; break; }
                 fi
             else
                 { echo "${WARN} something wrong happened parsing the public keys"; break; }
