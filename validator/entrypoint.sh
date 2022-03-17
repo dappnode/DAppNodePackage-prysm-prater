@@ -25,10 +25,6 @@ function ensure_envs_exist() {
 #     "readonly": true
 #     }]
 # }
-#
-# IMPORTANT! Prysm validator-web3signer does not allow to start without public keys.
-# - Service must exit with 1 to keep the service restarting until there are uploaded validators on the web3signer.
-# - Prysm is about to change this behaviour: https://github.com/prysmaticlabs/prysm/issues/10293
 function get_public_keys() {
     # Try for 3 minutes    
     while true; do
