@@ -14,6 +14,8 @@ function ensure_envs_exist() {
     [ -z "${PUBLIC_KEYS_FILE}" ] && { echo "${ERROR} PUBLIC_KEYS_FILE is not set"; exit 1; }
     [ -z "${WALLET_DIR}" ] && { echo "${ERROR} WALLET_DIR is not set"; exit 1; }
     [ -z "${SUPERVISOR_CONF}" ] && { echo "${ERROR} SUPERVISOR_CONF is not set"; exit 1; }
+    [ -z "$GRAFFITI" ] && echo "$ERROR: GRAFFITI is not set" && exit 1
+    [ ! -z "$GRAFFITI" ] && EXTRA_OPTS="${EXTRA_OPTS} --graffiti=\"${GRAFFITI}\"" # Concatenate EXTRA_OPTS with existing var, otherwise supervisor will throw error
 }
 
 # - Endpoint: http://web3signer.web3signer-prater.dappnode:9000/eth/v1/keystores
