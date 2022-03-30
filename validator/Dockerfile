@@ -33,4 +33,7 @@ COPY entrypoint.sh /usr/local/bin
 # Copy supervisor config
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
+# Copy graffiti file
+COPY graffiti.yml /graffiti.yml
+
 ENTRYPOINT [ "/usr/local/bin/entrypoint.sh" ]
