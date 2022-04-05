@@ -9,7 +9,7 @@
   "type": "service",
   "architectures": ["linux/amd64"],
   "chain": {
-    "driver": "ethereum",
+    "driver": "ethereum-beacon-chain",
     "serviceName": "beacon-chain",
     "portNumber": 3500
   },
@@ -30,13 +30,6 @@
   "requirements": {
     "minimumDappnodeVersion": "0.2.51"
   },
-  "backup": [
-    {
-      "name": "eth2validators",
-      "path": "/root/.eth2validators",
-      "service": "validator"
-    }
-  ],
   "categories": ["Blockchain", "ETH2.0"],
   "warnings": {
     "onMajorUpdate": "This is a major update of Prysm Prater, it will start validating with the web3signer. There will be a migration where your keystores will be replaced to another location, pay attention to the update"
