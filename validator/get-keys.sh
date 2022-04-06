@@ -78,7 +78,7 @@ function write_public_keys() {
     rm -rf ${PUBLIC_KEYS_FILE}
     touch ${PUBLIC_KEYS_FILE}
     echo "${INFO} writing public keys to file"
-    for PUBLIC_KEY in ${PUBLIC_KEYS_API}; do
+    for PUBLIC_KEY in ${PUBLIC_KEYS_API[@]}; do
         if [ ! -z "${PUBLIC_KEY}" ]; then
             echo "${INFO} adding public key: $PUBLIC_KEY"    
             echo "${PUBLIC_KEY}" >> ${PUBLIC_KEYS_FILE}
