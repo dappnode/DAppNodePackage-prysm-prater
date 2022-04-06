@@ -90,6 +90,8 @@ function write_public_keys() {
 
 # Compares the public keys from the file with the public keys from the api
 function compare_public_keys() { 
+    # Convert PUBLIC_KEYS_API to array
+    PUBLIC_KEYS_API=($(echo ${PUBLIC_KEYS_API}))
     case ${VALIDATOR_STATUS} in
         RUNNING)
             echo "${INFO} validator is running"
