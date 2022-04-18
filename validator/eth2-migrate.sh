@@ -15,9 +15,6 @@ ERROR="[ ERROR-migration ]"
 WARN="[ WARN-migration ]"
 INFO="[ INFO-migration ]"
 
-HTTP_WEB3SIGNER="http://web3signer.web3signer-prater.dappnode:9000"
-NETWORK="prater"
-WALLET_DIR="/root/.eth2validators"
 WALLETPASSWORD_FILE="${WALLET_DIR}/walletpassword.txt"
 BACKUP_DIR="${WALLET_DIR}/backup"
 BACKUP_ZIP_FILE="${BACKUP_DIR}/backup.zip"
@@ -43,7 +40,7 @@ function ensure_requirements() {
     --retry 30 \
     --retry-delay 3 \
     --retry-connrefused \
-    "${HTTP_WEB3SIGNER}/upcheck") == 200 ]; then
+    "${WEB3SIGNER_API}/upcheck") == 200 ]; then
         echo "${INFO} web3signer available"
     else
         { echo "${ERROR} web3signer not available after 3 minutes, manual migration required"; empty_validator_volume; exit 1; }
@@ -144,7 +141,7 @@ function import_validators() {
         -H "Content-Type: application/json" \
         -H "Accept: application/json" \
         -H "Host: validator.prysm-prater.dappnode" \
-        ${HTTP_WEB3SIGNER}/eth/v1/keystores || { echo "${ERROR} failed to import validators, manual migration required"; empty_validator_volume; exit 1; }
+        ${WEB3SIGNER_API}/eth/v1/keystores || { echo "${ERROR} failed to import validators, manual migration required"; empty_validator_volume; exit 1; }
     echo "${INFO} validators imported"
 }
 

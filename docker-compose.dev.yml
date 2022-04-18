@@ -28,14 +28,10 @@ services:
       - "validator-data:/root/"
     restart: unless-stopped
     environment:
-      VALIDATOR_PORT: 3500
-      WALLET_DIR: "/root/.eth2validators"
+      LOG_TYPE: "INFO"
       BEACON_RPC_PROVIDER: "beacon-chain.prysm-prater.dappnode:4000"
       BEACON_RPC_GATEWAY_PROVIDER: "beacon-chain.prysm-prater.dappnode:3500"
-      HTTP_WEB3SIGNER: "http://web3signer.web3signer-prater.dappnode:9000"
-      PUBLIC_KEYS_FILE: /public_keys.txt
       GRAFFITI: validating_from_DAppNode
-      SUPERVISOR_CONF: /etc/supervisor/conf.d/supervisord.conf
       EXTRA_OPTS: ""
 volumes:
   beacon-chain-data: {}
