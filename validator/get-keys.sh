@@ -36,14 +36,14 @@ function web3signer_response_middleware() {
   local http_code=$1 content=$2
   case ${http_code} in
   200)
-    log debug "client authorized to access the web3signer api"
+    log debug "success response from web3signer (client authorized): ${content}, HTTP code ${http_code}"
     ;;
   403)
     if [ "$content" == "*Host not authorized*" ]; then
-      log debug "client not authorized to access the web3signer api"
+      log info "client not authorized to access the web3signer api"
       if [[ "$VALIDATOR_STATUS" == "RUNNING" ]]; then
         {
-          log debug "stopping validator"
+          log info "stopping validator"
           supervisorctl -u dummy -p dummy stop validator
           exit 0
         } || {
@@ -55,14 +55,14 @@ function web3signer_response_middleware() {
     else
       {
         log error "${content} HTTP code ${http_code} from ${WEB3SIGNER_API}"
-        exit 1
+        exit 0
       }
     fi
     ;;
   *)
     {
       log error "${content} HTTP code ${http_code} from ${WEB3SIGNER_API}"
-      exit 1
+      exit 0
     }
     ;;
   esac
@@ -110,13 +110,17 @@ function client_response_middleware() {
   local http_code=$1 content=$2
   case ${http_code} in
   200)
-    log debug "successfully requested vc"
+    log debug "success response from validator client: ${content}, HTTP code ${http_code}"
     ;;
   *)
     {
       log error "${content} HTTP code ${http_code} from ${CLIENT_API}"
-      #supervisorctl -u dummy -p dummy restart validator
-      exit 1
+      log debug "stopping validator"
+      supervisorctl -u dummy -p dummy restart validator || {
+        log error "could not restart validator"
+        exit 1
+      }
+      exit 0
     }
     ;;
   esac
@@ -161,7 +165,6 @@ function post_client_pubkey() {
   http_code=${response: -3}
   content=$(echo "${response}" | head -c-4)
   client_response_middleware "$http_code" "$content"
-  log debug "successfully imported pubkey $1 in clinent, validator client returned: ${content}"
 }
 
 # Delete public keys from client keymanager API
@@ -179,8 +182,11 @@ function delete_client_pubkey() {
   http_code=${response: -3}
   content=$(echo "${response}" | head -c-4)
   client_response_middleware "$http_code" "$content"
-  log debug "successfully deleted pubkey $1 in client, validator client returned: ${content}"
 }
+
+#########
+# UTILS #
+#########
 
 # Get beacon node syncing status into the variable IS_BEACON_SYNCING
 # https://ethereum.github.io/beacon-APIs/#/Node/getSyncingStatus
@@ -227,7 +233,7 @@ function compare_public_keys() {
 # MAIN #
 ########
 
-log debug "starting cronjob"
+log info "starting cronjob"
 
 get_beacon_status # IS_BEACON_SYNCING
 log debug "beacon node syncing status: ${IS_BEACON_SYNCING}"
@@ -240,16 +246,19 @@ get_web3signer_pubkeys # WEBWEB3SIGNER_PUBKEYS
 case ${VALIDATOR_STATUS} in
 RUNNING)
   {
-    log debug "validator is running"
-    if [[ "${IS_BEACON_SYNCING}" == "true" ]] || [[ "${#WEB3SIGNER_PUBKEYS[@]}" -eq 0 ]] || [[ "${WEB3SIGNER_STATUS}" != "ok" ]]; then
+    log info "validator is running"
+    if [[ "${#WEB3SIGNER_PUBKEYS[@]}" -eq 0 ]] || [[ "${WEB3SIGNER_STATUS}" != "OK" ]]; then
       {
-        log debug "stopping validator"
+        log info "stopping validator"
         supervisorctl -u dummy -p dummy stop validator
         exit 0
       } || {
         log error "could not stop validator"
         exit 1
       }
+    elif [[ "${IS_BEACON_SYNCING}" == "true" ]]; then
+      log info "beacon node is syncing, vc API is not available, skipping public key comparison"
+      exit 0
     else
       get_client_pubkeys # CLIENT_PUBKEYS
       log debug "comparing public keys"
@@ -258,10 +267,10 @@ RUNNING)
   }
   ;;
 STOPPED)
-  log debug "validator is stopped"
-  if [[ "${WEB3SIGNER_STATUS}" == "ok" ]] && [[ "${#WEB3SIGNER_PUBKEYS[@]}" -ne 0 ]] && [[ "${IS_BEACON_SYNCING}" == "false" ]]; then
+  log info "validator is stopped"
+  if [[ "${WEB3SIGNER_STATUS}" == "OK" ]] && [[ "${#WEB3SIGNER_PUBKEYS[@]}" -ne 0 ]]; then
     {
-      log debug "starting validator"
+      log info "starting validator"
       supervisorctl -u dummy -p dummy start validator
       exit 0
     } || {
@@ -285,5 +294,5 @@ STARTING | STOPPING)
   ;;
 esac
 
-log debug "finished cronjob"
+log info "finished cronjob"
 exit 0
