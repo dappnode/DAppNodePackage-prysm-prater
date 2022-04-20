@@ -17,7 +17,8 @@
   "author": "DAppNode Association <admin@dappnode.io> (https://github.com/dappnode)",
   "contributors": [
     "dappLion <dapplion@dappnode.io> (https://github.com/dapplion)",
-    "tropicar <tropicar@dappnode.io> (https://github.com/tropicar)"
+    "tropicar <tropicar@dappnode.io> (https://github.com/tropicar)",
+    "pablo <pablo@dappnode.io> (https://github.com/pablomendezroyo)"
   ],
   "license": "GPL-3.0",
   "repository": {
@@ -30,7 +31,7 @@
   "requirements": {
     "minimumDappnodeVersion": "0.2.51"
   },
-  "categories": ["Blockchain", "ETH2.0", "Prater"],
+  "categories": ["Blockchain", "ETH2.0"],
   "warnings": {
     "onMajorUpdate": "This is a major update of Prysm Prater, it will start validating with the web3signer. There will be a migration where your keystores will be replaced to another location, pay attention to the update"
   },
