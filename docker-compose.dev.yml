@@ -15,6 +15,7 @@ services:
     environment:
       HTTP_WEB3PROVIDER: "http://goerli-geth.dappnode:8545"
       CORSDOMAIN: "http://prysm-prater.dappnode"
+      WEB3_BACKUP: ""
       EXTRA_OPTS: ""
   validator:
     image: "validator.prysm-prater.dnp.dappnode.eth:0.2.0"
