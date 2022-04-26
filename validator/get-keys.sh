@@ -140,11 +140,11 @@ function client_response_middleware() {
 # }
 function get_client_pubkeys() {
   local response content http_code
-  response=$(curl -s -w "%{http_code}" -X GET -H "Content-Type: application/json" "${CLIENT_API}/eth/v1/keystores")
+  response=$(curl -s -w "%{http_code}" -X GET -H "Authorization: Bearer ${AUTH_TOKEN}" -H "Content-Type: application/json" "${CLIENT_API}/eth/v1/remotekeys")
   http_code=${response: -3}
   content=$(echo "${response}" | head -c-4)
   client_response_middleware "$http_code" "$content"
-  CLIENT_PUBKEYS=($(echo "${content}" | jq -r 'try .data[].validating_pubkey'))
+  CLIENT_PUBKEYS=($(echo "${content}" | jq -r 'try .data[].pubkey'))
 }
 
 # Import public keys in client keymanager API
@@ -161,7 +161,7 @@ function get_client_pubkeys() {
 function post_client_pubkey() {
   local request response http_code content
   request='{"remote_keys": [{"pubkey": "'${1}'", "url": "'${WEB3SIGNER_API}'"}]}'
-  response=$(curl -s -w "%{http_code}" -X POST -H "Content-Type: application/json" "${CLIENT_API}/eth/v1/keystores")
+  response=$(curl -s -w "%{http_code}" -X POST -H "Authorization: Bearer ${AUTH_TOKEN}" -H "Content-Type: application/json" --data "${request}" "${CLIENT_API}/eth/v1/remotekeys")
   http_code=${response: -3}
   content=$(echo "${response}" | head -c-4)
   client_response_middleware "$http_code" "$content"
@@ -178,7 +178,7 @@ function post_client_pubkey() {
 function delete_client_pubkey() {
   local request response http_code content
   request='{"pubkeys": ["'${1}'"]}'
-  response=$(curl -s -w "%{http_code}" -X DELETE -H "Content-Type: application/json" --data="${request}" "${CLIENT_API}/eth/v1/keystores")
+  response=$(curl -s -w "%{http_code}" -X DELETE -H "Authorization: Bearer ${AUTH_TOKEN}" -H "Content-Type: application/json" --data "${request}" "${CLIENT_API}/eth/v1/remotekeys")
   http_code=${response: -3}
   content=$(echo "${response}" | head -c-4)
   client_response_middleware "$http_code" "$content"
@@ -211,29 +211,54 @@ function get_beacon_status() {
 function compare_public_keys() {
   log debug "client public keys: ${#CLIENT_PUBKEYS[@]}"
   log debug "web3signer public keys: ${#WEB3SIGNER_PUBKEYS[@]}"
-  local unique_pubkeys
-  unique_pubkeys=($(echo "${WEBWEB3SIGNER_PUBKEYS[@]}" "${CLIENT_PUBKEYS[@]}" | tr ' ' '\n' | sort | uniq -u))
-  for i in "${unique_pubkeys[@]}"; do
-    if [[ "${WEBWEB3SIGNER_PUBKEYS[*]}" =~ ${i} ]]; then
-      log debug "public key from validator client ${i} found in web3signer"
-    else
-      log debug "public key ${i} from validator client not found in web3signer. Deleting it from client"
-      delete_client_pubkey "$i"
-    fi
-    if [[ "${CLIENT_PUBKEYS[*]}" =~ ${i} ]]; then
-      log debug "public key from web3signer ${i} found in validator client"
-    else
-      log debug "public key ${i} from web3signer not found in validator client. Posting it to client"
-      post_client_pubkey "$i"
-    fi
+
+  # Delete pubkeys if necessary
+  local pubkeys_to_delete
+  for pubkey in "${CLIENT_PUBKEYS[@]}"; do
+    [[ ! " ${WEB3SIGNER_PUBKEYS[*]} " =~ ${pubkey} ]] && pubkeys_to_delete+=("${pubkey}")
   done
+  if [[ ${#pubkeys_to_delete[@]} -ne 0 ]]; then
+    for pubkey in "${pubkeys_to_delete[@]}"; do
+      log info "deleting pubkey ${pubkey}"
+      delete_client_pubkey "${pubkey}"
+    done
+  else
+    log info "no pubkeys to delete"
+  fi
+
+  # Import pubkeys if necessary
+  local pubkeys_to_import
+  for pubkey in "${WEB3SIGNER_PUBKEYS[@]}"; do
+    [[ ! " ${CLIENT_PUBKEYS[*]} " =~ ${pubkey} ]] && pubkeys_to_import+=("${pubkey}")
+  done
+  if [[ ${#pubkeys_to_import[@]} -ne 0 ]]; then
+    for pubkey in "${pubkeys_to_import[@]}"; do
+      log info "importing pubkey ${pubkey}"
+      post_client_pubkey "${pubkey}"
+    done
+  else
+    log debug "no pubkeys to import"
+  fi
+}
+
+function read_auth_token() {
+  if [[ -f "${WALLET_DIR}/auth-token" ]]; then
+    AUTH_TOKEN=$(cat "${WALLET_DIR}/auth-token" | sed -n '2p' | sed 's/^"\(.*\)"$/\1/')
+    if [[ -z "${AUTH_TOKEN}" ]]; then
+      log error "auth-token file is empty"
+      exit 1
+    fi
+  else
+    log error "auth_token file not found in ${WALLET_DIR}"
+    exit 1
+  fi
 }
 
 ########
 # MAIN #
 ########
 
-log info "starting cronjob"
+log debug "starting cronjob"
 
 get_beacon_status # IS_BEACON_SYNCING
 log debug "beacon node syncing status: ${IS_BEACON_SYNCING}"
@@ -246,8 +271,8 @@ get_web3signer_pubkeys # WEBWEB3SIGNER_PUBKEYS
 case ${VALIDATOR_STATUS} in
 RUNNING)
   {
-    log info "validator is running"
-    if [[ "${#WEB3SIGNER_PUBKEYS[@]}" -eq 0 ]] || [[ "${WEB3SIGNER_STATUS}" != "OK" ]]; then
+    log debug "validator is running"
+    if [[ "${WEB3SIGNER_STATUS}" != "OK" ]]; then
       {
         log info "stopping validator"
         supervisorctl -u dummy -p dummy stop validator
@@ -260,6 +285,7 @@ RUNNING)
       log info "beacon node is syncing, vc API is not available, skipping public key comparison"
       exit 0
     else
+      read_auth_token    # AUTH_TOKEN
       get_client_pubkeys # CLIENT_PUBKEYS
       log debug "comparing public keys"
       compare_public_keys
@@ -267,8 +293,8 @@ RUNNING)
   }
   ;;
 STOPPED)
-  log info "validator is stopped"
-  if [[ "${WEB3SIGNER_STATUS}" == "OK" ]] && [[ "${#WEB3SIGNER_PUBKEYS[@]}" -ne 0 ]]; then
+  log debug "validator is stopped"
+  if [[ "${WEB3SIGNER_STATUS}" == "OK" ]]; then
     {
       log info "starting validator"
       supervisorctl -u dummy -p dummy start validator
@@ -281,7 +307,7 @@ STOPPED)
   ;;
 STARTING | STOPPING)
   {
-    log info "supervisor request is been processed"
+    log debug "supervisor request is been processed"
     exit 0
   }
   ;;
@@ -294,5 +320,5 @@ STARTING | STOPPING)
   ;;
 esac
 
-log info "finished cronjob"
+log debug "finished cronjob"
 exit 0
