@@ -11,7 +11,7 @@ RUN DEBIAN_FRONTEND=noninteractive \
   chmod +x  /usr/local/bin/beacon-chain
 
 FROM debian:bullseye-slim
- 
+
 #Copy binaries from build stage
 COPY --from=binary /usr/local/bin/beacon-chain /usr/local/bin/beacon-chain
 COPY --from=binary /tmp/genesis.ssz /genesis.ssz
@@ -19,8 +19,6 @@ COPY --from=binary /tmp/genesis.ssz /genesis.ssz
 RUN apt update && \
   apt install -y ca-certificates file && \
   rm -rf /var/lib/apt/lists/*
-
-ADD ssl /ssl/
 
 ENTRYPOINT [ "sh", "-c", "exec beacon-chain \
   --prater \
@@ -34,4 +32,4 @@ ENTRYPOINT [ "sh", "-c", "exec beacon-chain \
   --genesis-state=/genesis.ssz \
   --accept-terms-of-use \
   $EXTRA_OPTS" ]
- 
+

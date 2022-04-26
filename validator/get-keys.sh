@@ -1,157 +1,324 @@
 #!/bin/bash
-#
-# This script must fetch and compare the public keys returned from the web3signer api
-# with the public keys in the public_keys.txt file used to start the validator
-
-ERROR="[ ERROR-cronjob ]"
-WARN="[ WARN-cronjob ]"
-INFO="[ INFO-cronjob ]"
-
-CLIENT="prysm"
-NETWORK="prater"
-
-# This var must be set here and must be equal to the var defined in the compose file
-PUBLIC_KEYS_FILE="/public_keys.txt"
-HTTP_WEB3SIGNER="http://web3signer.web3signer-prater.dappnode:9000"
+# This script does the following:
+# - Start/stop validator service deppending on:
+#   - If the validator is already running
+#   - web3signer status
+#   - beacon node syncing status
+# - Reload pubkeys in the validator on the fly deppending on the web3signer pubkeys
 
 # Validator service status: http://supervisord.org/subprocess.html
 VALIDATOR_STATUS=$(supervisorctl -u dummy -p dummy status validator | awk '{print $2}')
 
-# Get public keys from web3signer API
-function get_public_keys() {
-    # Try for 30 seconds
-    if WEB3SIGNER_RESPONSE=$(curl -s -w "%{http_code}" -X GET -H "Content-Type: application/json" -H "Host: validator.${CLIENT}-${NETWORK}.dappnode" \
-    --retry 10 --retry-delay 3 --retry-connrefused "${HTTP_WEB3SIGNER}/eth/v1/keystores"); then
-
-        HTTP_CODE=${WEB3SIGNER_RESPONSE: -3}
-        CONTENT=$(echo ${WEB3SIGNER_RESPONSE} | head -c-4)
-
-        case ${HTTP_CODE} in
-            200)
-                PUBLIC_KEYS_API=$(echo ${CONTENT} | jq -r 'try .data[].validating_pubkey')
-                if [ -z "${PUBLIC_KEYS_API}" ]; then
-                    echo "${INFO} no public keys found in web3signer api"
-                    if [ "$VALIDATOR_STATUS" != "STOPPED" ]; then
-                        echo "${INFO} stopping validator"
-                        supervisorctl -u dummy -p dummy stop validator || { echo "${ERROR} could not stop validator"; exit 1; }
-                    fi
-                    exit 0
-                else
-                    echo "${INFO} found public keys: $PUBLIC_KEYS_API"
-                fi
-                ;;
-            403)
-                if [[ "${CONTENT}" == *"Host not authorized"* ]]; then
-                    echo "${WARN} client not authorized to access the web3signer api"
-                    if [ "$VALIDATOR_STATUS" != "STOPPED" ]; then
-                        echo "${INFO} stopping validator"
-                        supervisorctl -u dummy -p dummy stop validator || { echo "${ERROR} could not stop validator"; exit 1; }
-                    fi
-                    exit 0
-                fi
-                { echo "${ERROR} ${CONTENT} HTTP code ${HTTP_CODE} from ${HTTP_WEB3SIGNER}"; exit 1; }
-                ;;
-            *)
-                { echo "${ERROR} ${CONTENT} HTTP code ${HTTP_CODE} from ${HTTP_WEB3SIGNER}"; exit 1; }
-                ;;
-        esac
-    else
-        { echo "${ERROR} web3signer not available"; exit 1; }
-    fi
+# Log level function: $1 = logType $2 = message
+function log {
+  case $1 in
+  debug)
+    [[ $LOG_LEVEL -le 0 ]] && echo "[ DEBUG-cron ] ${2}"
+    ;;
+  info)
+    [[ $LOG_LEVEL -le 1 ]] && echo "[ INFO-cron ] ${2}"
+    ;;
+  warn)
+    [[ $LOG_LEVEL -le 2 ]] && echo "[ WARN-cron ] ${2}"
+    ;;
+  error)
+    [[ $LOG_LEVEL -le 3 ]] && echo "[ ERROR-cron ] ${2}"
+    ;;
+  esac
 }
 
-# Reads public keys from file by new line separated and converts to string array
-function read_old_public_keys() {
-    if [ -f ${PUBLIC_KEYS_FILE} ]; then
-        echo "${INFO} reading public keys from file"
-        PUBLIC_KEYS_OLD=($(cat ${PUBLIC_KEYS_FILE} | tr '\n' ' '))
+##################
+# WEB3SIGNER API #
+##################
+
+# web3signer responses middleware: $1=http_code $2=content
+function web3signer_response_middleware() {
+  local http_code=$1 content=$2
+  case ${http_code} in
+  200)
+    log debug "success response from web3signer (client authorized): ${content}, HTTP code ${http_code}"
+    ;;
+  403)
+    if [ "$content" == "*Host not authorized*" ]; then
+      log info "client not authorized to access the web3signer api"
+      if [[ "$VALIDATOR_STATUS" == "RUNNING" ]]; then
+        {
+          log info "stopping validator"
+          supervisorctl -u dummy -p dummy stop validator
+          exit 0
+        } || {
+          log error "could not stop validator"
+          exit 1
+        }
+      fi
+      exit 0
     else
-        echo "${WARN} file ${PUBLIC_KEYS_FILE} not found"
-        PUBLIC_KEYS_OLD=()
+      {
+        log error "${content} HTTP code ${http_code} from ${WEB3SIGNER_API}"
+        exit 0
+      }
     fi
+    ;;
+  *)
+    {
+      log error "${content} HTTP code ${http_code} from ${WEB3SIGNER_API}"
+      exit 0
+    }
+    ;;
+  esac
 }
 
-# Writes public keys
-# - by new line separated
-# - creates file if it does not exist
-function write_public_keys() {
-    rm -rf ${PUBLIC_KEYS_FILE}
-    touch ${PUBLIC_KEYS_FILE}
-    echo "${INFO} writing public keys to file"
-    for PUBLIC_KEY in ${PUBLIC_KEYS_API[@]}; do
-        if [ ! -z "${PUBLIC_KEY}" ]; then
-            echo "${INFO} adding public key: $PUBLIC_KEY"    
-            echo "${PUBLIC_KEY}" >> ${PUBLIC_KEYS_FILE}
-        else
-            echo "${WARN} empty public key"
-        fi
+# Get the web3signer status into the variable WEB3SIGNER_STATUS
+# https://consensys.github.io/web3signer/web3signer-eth2.html#tag/Server-Status
+# Response: plain text
+function get_web3signer_status() {
+  local response content http_code
+  response=$(curl -s -w "%{http_code}" -X GET -H "Content-Type: application/json" -H "Host: validator.${CLIENT}-${NETWORK}.dappnode" "${WEB3SIGNER_API}/upcheck")
+  http_code=${response: -3}
+  content=$(echo "${response}" | head -c-4)
+  web3signer_response_middleware "$http_code" "$content"
+  WEB3SIGNER_STATUS=$content
+}
+
+# Get public keys from web3signer API into the variable WEB3SIGNER_PUBLIC_KEYS
+# https://consensys.github.io/web3signer/web3signer-eth2.html#operation/KEYMANAGER_LIST
+# Response:
+# {
+#   "data": [
+#       {
+#           "validating_pubkey": "0x93247f2209abcacf57b75a51dafae777f9dd38bc7053d1af526f220a7489a6d3a2753e5f3e8b1cfe39b56f43611df74a",
+#           "derivation_path": "m/12381/3600/0/0/0",
+#           "readonly": true
+#       }
+#   ]
+# }
+function get_web3signer_pubkeys() {
+  local response content http_code
+  response=$(curl -s -w "%{http_code}" -X GET -H "Content-Type: application/json" -H "Host: validator.${CLIENT}-${NETWORK}.dappnode" "${WEB3SIGNER_API}/eth/v1/keystores")
+  http_code=${response: -3}
+  content=$(echo "${response}" | head -c-4)
+  web3signer_response_middleware "$http_code" "$content"
+  WEB3SIGNER_PUBKEYS=($(echo "${content}" | jq -r 'try .data[].validating_pubkey'))
+}
+
+#################
+# VALIDATOR API #
+#################
+
+# validator client responses middleware: $1=http_code $2=content
+function client_response_middleware() {
+  local http_code=$1 content=$2
+  case ${http_code} in
+  200)
+    log debug "success response from validator client: ${content}, HTTP code ${http_code}"
+    ;;
+  *)
+    {
+      log error "${content} HTTP code ${http_code} from ${CLIENT_API}"
+      log debug "stopping validator"
+      supervisorctl -u dummy -p dummy restart validator || {
+        log error "could not restart validator"
+        exit 1
+      }
+      exit 0
+    }
+    ;;
+  esac
+}
+
+# Get public keys from client keymanager API into the variable CLIENT_PUBKEYS
+# https://ethereum.github.io/keymanager-APIs/#/Remote%20Key%20Manager/ListRemoteKeys
+# Response:
+# {
+#   "data": [
+#     {
+#       "pubkey": "0x93247f2209abcacf57b75a51dafae777f9dd38bc7053d1af526f220a7489a6d3a2753e5f3e8b1cfe39b56f43611df74a",
+#       "url": "https://remote.signer",
+#       "readonly": true
+#     }
+#   ]
+# }
+function get_client_pubkeys() {
+  local response content http_code
+  response=$(curl -s -w "%{http_code}" -X GET -H "Authorization: Bearer ${AUTH_TOKEN}" -H "Content-Type: application/json" "${CLIENT_API}/eth/v1/remotekeys")
+  http_code=${response: -3}
+  content=$(echo "${response}" | head -c-4)
+  client_response_middleware "$http_code" "$content"
+  CLIENT_PUBKEYS=($(echo "${content}" | jq -r 'try .data[].pubkey'))
+}
+
+# Import public keys in client keymanager API
+# https://ethereum.github.io/keymanager-APIs/#/Remote%20Key%20Manager/ImportRemoteKeys
+# Request format
+# {
+#   "remote_keys": [
+#     {
+#       "pubkey": "0x93247f2209abcacf57b75a51dafae777f9dd38bc7053d1af526f220a7489a6d3a2753e5f3e8b1cfe39b56f43611df74a",
+#       "url": "https://remote.signer"
+#     }
+#   ]
+# }
+function post_client_pubkey() {
+  local request response http_code content
+  request='{"remote_keys": [{"pubkey": "'${1}'", "url": "'${WEB3SIGNER_API}'"}]}'
+  response=$(curl -s -w "%{http_code}" -X POST -H "Authorization: Bearer ${AUTH_TOKEN}" -H "Content-Type: application/json" --data "${request}" "${CLIENT_API}/eth/v1/remotekeys")
+  http_code=${response: -3}
+  content=$(echo "${response}" | head -c-4)
+  client_response_middleware "$http_code" "$content"
+}
+
+# Delete public keys from client keymanager API
+# https://ethereum.github.io/keymanager-APIs/#/Remote%20Key%20Manager/DeleteRemoteKeys
+# Request format
+# {
+#   "pubkeys": [
+#     "0x93247f2209abcacf57b75a51dafae777f9dd38bc7053d1af526f220a7489a6d3a2753e5f3e8b1cfe39b56f43611df74a"
+#   ]
+# }
+function delete_client_pubkey() {
+  local request response http_code content
+  request='{"pubkeys": ["'${1}'"]}'
+  response=$(curl -s -w "%{http_code}" -X DELETE -H "Authorization: Bearer ${AUTH_TOKEN}" -H "Content-Type: application/json" --data "${request}" "${CLIENT_API}/eth/v1/remotekeys")
+  http_code=${response: -3}
+  content=$(echo "${response}" | head -c-4)
+  client_response_middleware "$http_code" "$content"
+}
+
+#########
+# UTILS #
+#########
+
+# Get beacon node syncing status into the variable IS_BEACON_SYNCING
+# https://ethereum.github.io/beacon-APIs/#/Node/getSyncingStatus
+# Response format
+# {
+#   "data": {
+#     "head_slot": "1",
+#     "sync_distance": "1",
+#     "is_syncing": true
+#   }
+# }
+function get_beacon_status() {
+  local response http_code content
+  response=$(curl -s -w "%{http_code}" -H "Content-Type: application/json" "${BEACON_RPC_GATEWAY_PROVIDER}/eth/v1/node/syncing")
+  http_code=${response: -3}
+  content=$(echo "${response}" | head -c-4)
+  client_response_middleware "$http_code" "$content"
+  IS_BEACON_SYNCING=$(echo "${content}" | jq -r 'try .data.is_syncing')
+}
+
+# Compares the public keys from the web3signer with the public keys from the validator client
+function compare_public_keys() {
+  log debug "client public keys: ${#CLIENT_PUBKEYS[@]}"
+  log debug "web3signer public keys: ${#WEB3SIGNER_PUBKEYS[@]}"
+
+  # Delete pubkeys if necessary
+  local pubkeys_to_delete
+  for pubkey in "${CLIENT_PUBKEYS[@]}"; do
+    [[ ! " ${WEB3SIGNER_PUBKEYS[*]} " =~ ${pubkey} ]] && pubkeys_to_delete+=("${pubkey}")
+  done
+  if [[ ${#pubkeys_to_delete[@]} -ne 0 ]]; then
+    for pubkey in "${pubkeys_to_delete[@]}"; do
+      log info "deleting pubkey ${pubkey}"
+      delete_client_pubkey "${pubkey}"
     done
+  else
+    log info "no pubkeys to delete"
+  fi
+
+  # Import pubkeys if necessary
+  local pubkeys_to_import
+  for pubkey in "${WEB3SIGNER_PUBKEYS[@]}"; do
+    [[ ! " ${CLIENT_PUBKEYS[*]} " =~ ${pubkey} ]] && pubkeys_to_import+=("${pubkey}")
+  done
+  if [[ ${#pubkeys_to_import[@]} -ne 0 ]]; then
+    for pubkey in "${pubkeys_to_import[@]}"; do
+      log info "importing pubkey ${pubkey}"
+      post_client_pubkey "${pubkey}"
+    done
+  else
+    log debug "no pubkeys to import"
+  fi
 }
 
-# Compares the public keys from the file with the public keys from the api
-function compare_public_keys() { 
-    # Convert PUBLIC_KEYS_API to array
-    PUBLIC_KEYS_API=($(echo ${PUBLIC_KEYS_API}))
-    case ${VALIDATOR_STATUS} in
-        RUNNING)
-            echo "${INFO} validator is running"
-            if [ ${#PUBLIC_KEYS_OLD[@]} -ne ${#PUBLIC_KEYS_API[@]} ]; then
-                echo "${INFO} public keys from file and api are different. Reloading validator service"
-                write_public_keys
-                supervisorctl -u dummy -p dummy restart validator || { echo "${ERROR} could not restart validator"; exit 1; }
-                exit 0
-            else
-                if [ ${#PUBLIC_KEYS_API[@]} -eq 0 ]; then
-                    echo "${INFO} public keys from web3signer are empty. Stopping validator service"
-                    supervisorctl -u dummy -p dummy stop validator || { echo "${ERROR} could not stop validator"; exit 1; }
-                    exit 0
-                else
-                    echo "${INFO} same number of public keys, comparing"
-                    for i in "${PUBLIC_KEYS_OLD[@]}"; do
-                        if [[ "${PUBLIC_KEYS_API[@]}" =~ "${i}" ]]; then
-                            echo "${INFO} public key ${i} found in api"
-                        else
-                            echo "${WARN} public key ${i} from file not found in api. Reloading validator service"
-                            write_public_keys
-                            supervisorctl -u dummy -p dummy restart validator || { echo "${ERROR} could not restart validator"; exit 1; }
-                            exit 0
-                        fi
-                    done
-                fi
-            fi
-            ;;
-        STOPPED)
-            echo "${INFO} validator is stopped"
-            # If there are public keys in the web3signer start validator
-            if [ ${#PUBLIC_KEYS_API[@]} -gt 0 ]; then
-                echo "${INFO} found public keys in the web3signer"
-                write_public_keys
-                echo "${INFO} starting validator"
-                supervisorctl -u dummy -p dummy start validator || { echo "${ERROR} validator could not be started"; exit 1; }
-                exit 0
-            else
-                echo "${INFO} no public keys found in the web3signer"
-            fi
-            ;;
-        STARTING|STOPPING)
-            echo "${INFO} supervisor request is been processed"
-            exit 0
-            ;;
-        *) # BACKOFF EXITED UNKNOWN FATAL
-            echo "${ERROR} unexpected status: ${VALIDATOR_STATUS}"
-            supervisorctl -u dummy -p dummy reload
-            exit 1
-            ;;
-    esac
+function read_auth_token() {
+  if [[ -f "${WALLET_DIR}/auth-token" ]]; then
+    AUTH_TOKEN=$(cat "${WALLET_DIR}/auth-token" | sed -n '2p' | sed 's/^"\(.*\)"$/\1/')
+    if [[ -z "${AUTH_TOKEN}" ]]; then
+      log error "auth-token file is empty"
+      exit 1
+    fi
+  else
+    log error "auth_token file not found in ${WALLET_DIR}"
+    exit 1
+  fi
 }
 
 ########
 # MAIN #
 ########
 
-echo "${INFO} starting cronjob"
-get_public_keys
-read_old_public_keys
-compare_public_keys
-echo "${INFO} finished cronjob"
+log debug "starting cronjob"
+
+get_beacon_status # IS_BEACON_SYNCING
+log debug "beacon node syncing status: ${IS_BEACON_SYNCING}"
+
+get_web3signer_status # WEB3SIGNER_STATUS
+log debug "web3signer status: ${WEB3SIGNER_STATUS}"
+
+get_web3signer_pubkeys # WEBWEB3SIGNER_PUBKEYS
+
+case ${VALIDATOR_STATUS} in
+RUNNING)
+  {
+    log debug "validator is running"
+    if [[ "${WEB3SIGNER_STATUS}" != "OK" ]]; then
+      {
+        log info "stopping validator"
+        supervisorctl -u dummy -p dummy stop validator
+        exit 0
+      } || {
+        log error "could not stop validator"
+        exit 1
+      }
+    elif [[ "${IS_BEACON_SYNCING}" == "true" ]]; then
+      log info "beacon node is syncing, vc API is not available, skipping public key comparison"
+      exit 0
+    else
+      read_auth_token    # AUTH_TOKEN
+      get_client_pubkeys # CLIENT_PUBKEYS
+      log debug "comparing public keys"
+      compare_public_keys
+    fi
+  }
+  ;;
+STOPPED)
+  log debug "validator is stopped"
+  if [[ "${WEB3SIGNER_STATUS}" == "OK" ]]; then
+    {
+      log info "starting validator"
+      supervisorctl -u dummy -p dummy start validator
+      exit 0
+    } || {
+      log error "could not start validator"
+      exit 1
+    }
+  fi
+  ;;
+STARTING | STOPPING)
+  {
+    log debug "supervisor request is been processed"
+    exit 0
+  }
+  ;;
+*) # BACKOFF EXITED UNKNOWN FATAL
+  {
+    log error "unexpected status: ${VALIDATOR_STATUS}"
+    supervisorctl -u dummy -p dummy reload
+    exit 1
+  }
+  ;;
+esac
+
+log debug "finished cronjob"
 exit 0
