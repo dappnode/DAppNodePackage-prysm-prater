@@ -112,7 +112,7 @@ function export_keystores() {
     --wallet-password-file="${WALLETPASSWORD_FILE}" \
     --backup-dir="${BACKUP_DIR}" \
     --backup-password-file="${WALLETPASSWORD_FILE}" \
-    --backup-public-keys="${PUBLIC_KEYS_COMMA_SEPARATED} " \
+    --backup-public-keys="${PUBLIC_KEYS_COMMA_SEPARATED}" \
     --"${NETWORK}" \
     --accept-terms-of-use || {
     echo "${ERROR} failed to export keystores, manual migration required"
