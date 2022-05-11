@@ -24,7 +24,10 @@ fi
 WEB3SIGNER_RESPONSE=$(curl -s -w "%{http_code}" -X GET -H "Content-Type: application/json" -H "Host: validator.${CLIENT}-${NETWORK}.dappnode" "${WEB3SIGNER_API}/eth/v1/keystores")
 HTTP_CODE=${WEB3SIGNER_RESPONSE: -3}
 CONTENT=$(echo "${WEB3SIGNER_RESPONSE}" | head -c-4)
-if [ "$HTTP_CODE" != "200" ]; then
+
+if [ "${HTTP_CODE}" == "403" ] && [ "${CONTENT}" == "*Host not authorized*" ]; then
+  echo "${CLIENT} is not authorized to access the Web3Signer API. Start without pubkeys"
+elif [ "$HTTP_CODE" != "200" ]; then
   echo "Failed to get keystores from web3signer, HTTP code: ${HTTP_CODE}, content: ${CONTENT}"
 else
   PUBLIC_KEYS_WEB3SIGNER=($(echo "${CONTENT}" | jq -r 'try .data[].validating_pubkey'))
