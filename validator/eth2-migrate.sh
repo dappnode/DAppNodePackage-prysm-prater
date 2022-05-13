@@ -85,8 +85,8 @@ function get_public_keys() {
     --wallet-password-file="${WALLETPASSWORD_FILE}" \
     --"${NETWORK}" \
     --accept-terms-of-use)"; then
-    VALIDATORS_PUBKEYS_ARRAY=$(echo "${VALIDATORS_PUBKEYS}" | grep -o -E '0x[a-zA-Z0-9]{96}')
-    PUBLIC_KEYS_COMMA_SEPARATED=$(echo "${VALIDATORS_PUBKEYS_ARRAY}" | tr ' ' ',')
+    VALIDATORS_PUBKEYS_ARRAY=($(echo "${VALIDATORS_PUBKEYS}" | grep -o -E '0x[a-zA-Z0-9]{96}'))
+    PUBLIC_KEYS_COMMA_SEPARATED=$(echo "${VALIDATORS_PUBKEYS_ARRAY[*]}" | tr ' ' ',')
     if [ -n "$VALIDATORS_PUBKEYS" ]; then
       echo "${INFO} Validator pubkeys found: ${VALIDATORS_PUBKEYS}"
     else
@@ -154,8 +154,8 @@ function export_walletpassword() {
 # - Exit if request body file cannot be created
 function create_request_body_file() {
   echo '{}' | jq '{ keystores: [], passwords: [], slashing_protection: "" }' >"$REQUEST_BODY_FILE"
-  KEYSTORE_FILES=$(ls "${BACKUP_KEYSTORES_DIR}"/*.json)
-  for KEYSTORE_FILE in ${KEYSTORE_FILES}; do
+  KEYSTORE_FILES=($(ls "${BACKUP_KEYSTORES_DIR}"/*.json))
+  for KEYSTORE_FILE in "${KEYSTORE_FILES[@]}"; do
     echo $(jq --slurpfile keystore ${KEYSTORE_FILE} '.keystores += [$keystore[0]|tojson]' ${REQUEST_BODY_FILE}) >${REQUEST_BODY_FILE}
     echo $(jq --arg walletpassword "$(cat ${BACKUP_WALLETPASSWORD_FILE})" '.passwords += [$walletpassword]' ${REQUEST_BODY_FILE}) >${REQUEST_BODY_FILE}
   done

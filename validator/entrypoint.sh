@@ -4,7 +4,7 @@ CLIENT="prysm"
 NETWORK="prater"
 VALIDATOR_PORT=3500
 WEB3SIGNER_API="http://web3signer.web3signer-${NETWORK}.dappnode:9000"
-WALLET_DIR="/root/.eth2validators"
+export WALLET_DIR="/root/.eth2validators"
 
 # Migrate if required
 if [[ $(validator accounts list \
