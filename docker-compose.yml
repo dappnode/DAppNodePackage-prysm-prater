@@ -15,12 +15,13 @@ services:
     environment:
       HTTP_WEB3PROVIDER: "http://goerli-geth.dappnode:8545"
       CORSDOMAIN: "http://prysm-prater.dappnode"
+      WEB3_BACKUP: ""
       EXTRA_OPTS: ""
   validator:
     image: "validator.prysm-prater.dnp.dappnode.eth:1.0.0"
     build:
       context: validator
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
       args:
         UPSTREAM_VERSION: v2.1.1
         BRANCH: develop

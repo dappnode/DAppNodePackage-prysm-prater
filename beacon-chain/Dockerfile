@@ -20,16 +20,7 @@ RUN apt update && \
   apt install -y ca-certificates file && \
   rm -rf /var/lib/apt/lists/*
 
-ENTRYPOINT [ "sh", "-c", "exec beacon-chain \
-  --prater \
-  --datadir=/data \
-  --rpc-host=0.0.0.0 \
-  --grpc-gateway-host=0.0.0.0 \
-  --monitoring-host=0.0.0.0 \
-  --http-web3provider=\"$HTTP_WEB3PROVIDER\" \
-  --grpc-gateway-port=3500 \
-  --grpc-gateway-corsdomain=\"$CORSDOMAIN\" \
-  --genesis-state=/genesis.ssz \
-  --accept-terms-of-use \
-  $EXTRA_OPTS" ]
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+
+ENTRYPOINT [ "/usr/local/bin/entrypoint.sh" ]
 
