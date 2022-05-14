@@ -1,20 +1,16 @@
 [
-    {
-        "labels": {
-            "package": "prater.dnp.dappnode.eth",
-            "service": "beacon-chain.prysm-prater.dappnode"
-        },
-        "targets": [
-            "beacon-chain.prysm-prater.dappnode:8080"
-        ]
+  {
+    "labels": {
+      "package": "prysm-prater.dnp.dappnode.eth",
+      "service": "beacon-chain.prysm-prater.dappnode"
     },
-    {
-        "labels": {
-            "package": "prater.dnp.dappnode.eth",
-            "service": "validator.prysm-prater.dappnode"
-        },
-        "targets": [
-            "validator.prysm-prater.dappnode:8081"
-        ]
-    }
+    "targets": ["beacon-chain.prysm-prater.dappnode:8080"]
+  },
+  {
+    "labels": {
+      "package": "prysm-prater.dnp.dappnode.eth",
+      "service": "validator.prysm-prater.dappnode"
+    },
+    "targets": ["validator.prysm-prater.dappnode:8081"]
+  }
 ]
