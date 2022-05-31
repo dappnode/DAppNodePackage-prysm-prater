@@ -14,6 +14,7 @@ services:
     restart: unless-stopped
     environment:
       HTTP_WEB3PROVIDER: "http://goerli-geth.dappnode:8545"
+      CHECKPOINT_SYNC_URL: ""
       CORSDOMAIN: "http://prysm-prater.dappnode"
       WEB3_BACKUP: ""
       EXTRA_OPTS: ""

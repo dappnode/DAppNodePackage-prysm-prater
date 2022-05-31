@@ -1,6 +1,7 @@
 #!/bin/bash
 
 [[ -n $WEB3_BACKUP ]] && EXTRA_OPTS="--fallback-web3provider=${WEB3_BACKUP} ${EXTRA_OPTS}"
+[[ -n $CHECKPOINT_SYNC_URL ]] && EXTRA_OPTS="--checkpoint-sync-url=${CHECKPOINT_SYNC_URL}/eth/v2/debug/beacon/states/finalized ${EXTRA_OPTS}"
 
 exec -c beacon-chain \
   --prater \
