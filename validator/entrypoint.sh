@@ -1,9 +1,9 @@
 #!/bin/bash
 
 CLIENT="prysm"
-NETWORK="prater"
+export NETWORK="prater"
 VALIDATOR_PORT=3500
-WEB3SIGNER_API="http://web3signer.web3signer-${NETWORK}.dappnode:9000"
+export WEB3SIGNER_API="http://web3signer.web3signer-${NETWORK}.dappnode:9000"
 export WALLET_DIR="/root/.eth2validators"
 
 # Copy auth-token in runtime
