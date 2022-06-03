@@ -187,8 +187,7 @@ function empty_validator_volume() {
   mv "/root/.eth2/tosaccepted" "${WALLET_DIR}"/tosaccepted || echo "${WARN} failed to move tosaccepted file, manual migration required"
   # Removes old --datadir. Not needed anymore
   rm -rf "/root/.eth2" || echo "${WARN} failed to remove /root/.eth2"
-  # Removes old validator files: keystores, auth-token and walletpassword.txt
-  rm -rf "${WALLET_DIR}/auth-token" || echo "${WARN} failed to remove ${WALLET_DIR}/auth-token"
+  # Removes old validator files: keystores and walletpassword.txt
   rm -rf "${WALLET_DIR}/direct" || echo "${WARN} failed to remove ${WALLET_DIR}/direct"
   rm -rf "${WALLET_DIR}/walletpassword.txt" || echo "${WARN} failed to remove ${WALLET_DIR}/walletpassword.txt"
   # Removes backup files
