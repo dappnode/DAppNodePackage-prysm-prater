@@ -21,7 +21,7 @@ fields:
     target:
       type: environment
       name: WEB3_BACKUP
-      service: beacon-validator
+      service: beacon-chain
     title: Add a backup web3 provider
     description: >-
       It's a good idea to add a backup web3 provider in case your main one goes down. For example, if your primary EL client is a local Geth, but you want to use Infura as a backup.
