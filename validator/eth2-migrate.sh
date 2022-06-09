@@ -173,11 +173,8 @@ function import_validators() {
     -H "Content-Type: application/json" \
     -H "Accept: application/json" \
     -H "Host: validator.prysm-prater.dappnode" \
-    "${WEB3SIGNER_API}"/eth/v1/keystores || {
-    echo "${ERROR} failed to import validators, manual migration required"
-    empty_validator_volume
-    exit 1
-  }
+    "${WEB3SIGNER_API}"/eth/v1/keystores
+
   echo "${INFO} validators imported"
 }
 
