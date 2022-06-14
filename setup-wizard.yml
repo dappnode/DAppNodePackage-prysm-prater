@@ -37,3 +37,14 @@ fields:
       To get Prysm up and running in only a few minutes, you can start Prysm from a recent finalized checkpoint state rather than syncing from genesis. This is substantially **faster** and consumes **less resources** than syncing from genesis, while still providing all the same features. Be sure you are using a trusted node for the fast sync. Check [Prysm docs](https://docs.prylabs.network/docs/prysm-usage/parameters/)
       Get your checkpoint sync from [infura](https://infura.io/) (i.e https://XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX@eth2-beacon-prater.infura.io)
     required: false
+  - id: feeRecipientAddress
+    target:
+      type: environment
+      name: FEE_RECIPIENT_ADDRESS
+      service: validator
+    title: Fee Recipient Address
+    description: >-
+      Fee Recipient is a feature that lets you specify a priority fee recipient address on your validator client instance and beacon node. After The Merge, execution clients will begin depositing priority fees into this address whenever your validator client proposes a new block.
+    required: true
+    pattern: "^0x[a-fA-F0-9]{40}$"
+    patternErrorMessage: Must be a valid address (0x1fd16a...)
