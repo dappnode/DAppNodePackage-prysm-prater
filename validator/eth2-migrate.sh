@@ -46,6 +46,26 @@ function ensure_requirements() {
     }
   fi
 
+  # Try for 3 minutes
+  # Check if beacon is available
+  if [ "$(curl -s -X GET \
+    -H "Content-Type: application/json" \
+    --write-out '%{http_code}' \
+    --silent \
+    --output /dev/null \
+    --retry 30 \
+    --retry-delay 3 \
+    --retry-connrefused \
+    http://beacon-chain.prysm-prater.dappnode:3500/eth/v1/beacon/genesis)" == 200 ]; then
+    echo "${INFO} web3signer available"
+  else
+    {
+      echo "${ERROR} web3signer not available after 3 minutes, manual migration required"
+      empty_validator_volume
+      exit 1
+    }
+  fi
+
   # Check if wallet directory exists
   if [ ! -d "${WALLET_DIR}" ]; then
     {
