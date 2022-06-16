@@ -52,7 +52,7 @@ exec -c validator --prater \
   --grpc-gateway-host=0.0.0.0 \
   --grpc-gateway-port="$VALIDATOR_PORT" \
   --grpc-gateway-corsdomain=http://0.0.0.0:"$VALIDATOR_PORT" \
-  --graffiti=\"$GRAFFITI\" \
+  --graffiti="$GRAFFITI" \
   --suggested-fee-recipient="${FEE_RECIPIENT_ADDRESS}" \
   --web \
   --accept-terms-of-use \
