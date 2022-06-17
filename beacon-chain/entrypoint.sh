@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [[ -n $WEB3_BACKUP ]] && [[ $WEB3_BACKUP != *"--fallback-web3provider"* ]]; then
+if [[ -n $WEB3_BACKUP ]] && [[ $EXTRA_OPTS != *"--fallback-web3provider"* ]]; then
   EXTRA_OPTS="--fallback-web3provider=${WEB3_BACKUP} ${EXTRA_OPTS}"
 fi
 
