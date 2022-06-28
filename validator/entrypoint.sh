@@ -26,7 +26,7 @@ else
 fi
 
 # Remove manual migration if older than 20 days
-find /root/manual-migration/* -mtime +20 -exec rm -rf {} \;
+find /root/manual_migration/* -mtime +20 -exec rm -rf {} \;
 
 WEB3SIGNER_RESPONSE=$(curl -s -w "%{http_code}" -X GET -H "Content-Type: application/json" -H "Host: validator.${CLIENT}-${NETWORK}.dappnode" "${WEB3SIGNER_API}/eth/v1/keystores")
 HTTP_CODE=${WEB3SIGNER_RESPONSE: -3}
