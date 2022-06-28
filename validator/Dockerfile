@@ -12,7 +12,7 @@ RUN DEBIAN_FRONTEND=noninteractive \
 FROM debian:bullseye-slim
 
 RUN apt update && \
-  apt install -y ca-certificates file git curl jq unzip && \
+  apt install -y ca-certificates file git curl jq unzip zip && \
   rm -rf /var/lib/apt/lists/*
 
 #Copy binaries from build stage
