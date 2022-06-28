@@ -12,6 +12,7 @@ WARN="[ WARN-migration ]"
 INFO="[ INFO-migration ]"
 
 WALLETPASSWORD_FILE="${WALLET_DIR}/walletpassword.txt"
+MANUAL_MIGRATION_BACKUP_FILE="/root/manual_migration/backup.zip"
 BACKUP_DIR="${WALLET_DIR}/backup"
 BACKUP_ZIP_FILE="${BACKUP_DIR}/backup.zip"
 BACKUP_KEYSTORES_DIR="${BACKUP_DIR}/keystores" # Directory where the keystores are stored in format: keystore_0.json keystore_1.json ...
@@ -23,6 +24,27 @@ REQUEST_BODY_FILE="${BACKUP_DIR}/request_body.json"
 # FUNCTIONS #
 #############
 
+# Ensure files needed for migration exists
+function ensure_files_exist() {
+  # Check if wallet directory exists
+  if [ ! -d "${WALLET_DIR}" ]; then
+    {
+      echo "${ERROR} wallet directory not found, manual migration required"
+      empty_validator_volume
+      exit 1
+    }
+  fi
+
+  # Check if wallet password file exists
+  if [ ! -f "${WALLETPASSWORD_FILE}" ]; then
+    {
+      echo "${ERROR} wallet password file not found, manual migration required"
+      empty_validator_volume
+      exit 1
+    }
+  fi
+}
+
 # Ensure requirements
 function ensure_requirements() {
   # Try for 3 minutes
@@ -33,9 +55,9 @@ function ensure_requirements() {
     --write-out '%{http_code}' \
     --silent \
     --output /dev/null \
-    --retry 30 \
+    --retry 60 \
     --retry-delay 3 \
-    --retry-connrefused \
+    --retry-all-errors \
     "${WEB3SIGNER_API}/upcheck")" == 200 ]; then
     echo "${INFO} web3signer available"
   else
@@ -53,32 +75,14 @@ function ensure_requirements() {
     --write-out '%{http_code}' \
     --silent \
     --output /dev/null \
-    --retry 30 \
+    --retry 60 \
     --retry-delay 3 \
-    --retry-connrefused \
+    --retry-all-errors \
     http://beacon-chain.prysm-prater.dappnode:3500/eth/v1/beacon/genesis)" == 200 ]; then
     echo "${INFO} web3signer available"
   else
     {
       echo "${ERROR} web3signer not available after 3 minutes, manual migration required"
-      empty_validator_volume
-      exit 1
-    }
-  fi
-
-  # Check if wallet directory exists
-  if [ ! -d "${WALLET_DIR}" ]; then
-    {
-      echo "${ERROR} wallet directory not found, manual migration required"
-      empty_validator_volume
-      exit 1
-    }
-  fi
-
-  # Check if wallet password file exists
-  if [ ! -f "${WALLETPASSWORD_FILE}" ]; then
-    {
-      echo "${ERROR} wallet password file not found, manual migration required"
       empty_validator_volume
       exit 1
     }
@@ -125,8 +129,8 @@ function get_public_keys() {
   fi
 }
 
-# Export validators and slashing protection data
-function export_keystores() {
+# Export validators and walletpassword.txt
+function export_keystores_walletpassowrd() {
   validator accounts backup \
     --wallet-dir="${WALLET_DIR}" \
     --wallet-password-file="${WALLETPASSWORD_FILE}" \
@@ -136,6 +140,17 @@ function export_keystores() {
     --"${NETWORK}" \
     --accept-terms-of-use || {
     echo "${ERROR} failed to export keystores, manual migration required"
+    empty_validator_volume
+    exit 1
+  }
+
+  # Create manual_migration file
+  mkdir -p /root/manual_migration
+  cp "$BACKUP_ZIP_FILE" "$MANUAL_MIGRATION_BACKUP_FILE"
+  zip -r "$MANUAL_MIGRATION_BACKUP_FILE" "${WALLETPASSWORD_FILE}"
+
+  cp "${WALLETPASSWORD_FILE}" "${BACKUP_WALLETPASSWORD_FILE}" || {
+    echo "${ERROR} failed to export walletpassword.txt, manual migration required"
     empty_validator_volume
     exit 1
   }
@@ -155,15 +170,6 @@ function export_slashing_protection() {
     --"${NETWORK}" \
     --accept-terms-of-use || {
     echo "${ERROR} failed to export slashing protection, manual migration required"
-    empty_validator_volume
-    exit 1
-  }
-}
-
-# Export walletpassword.txt
-function export_walletpassword() {
-  cp "${WALLETPASSWORD_FILE}" "${BACKUP_WALLETPASSWORD_FILE}" || {
-    echo "${ERROR} failed to export walletpassword.txt, manual migration required"
     empty_validator_volume
     exit 1
   }
@@ -195,6 +201,10 @@ function import_validators() {
     -H "Host: prysm.migration-prater.dappnode" \
     "${WEB3SIGNER_API}"/eth/v1/keystores
 
+  # If this point is reached, then the migration was succeed, otherwise the error_handling will raise
+  # Delete manual_migration file
+  rm -rf "$MANUAL_MIGRATION_BACKUP_FILE"
+
   echo "${INFO} validators imported"
 }
 
@@ -222,18 +232,18 @@ error_handling() {
 
 trap 'error_handling' ERR
 
-echo "${INFO} ensuring requirements"
-ensure_requirements
+echo "${INFO} ensure files exist"
+ensure_files_exist
 echo "${INFO} getting validator pubkeys"
 get_public_keys
-echo "${INFO} exporting and unzipping keystores"
-export_keystores
+echo "${INFO} exporting keystores and walletpassword"
+export_keystores_walletpassowrd
 echo "${INFO} exporting slashing protection"
 export_slashing_protection
-echo "${INFO} exporting walletpassword.txt"
-export_walletpassword
 echo "${INFO} creating request body"
 create_request_body_file
+echo "${INFO} ensuring requirements"
+ensure_requirements
 echo "${INFO} importing validators"
 import_validators
 echo "${INFO} removing wallet dir recursively"
