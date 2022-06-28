@@ -12,7 +12,7 @@ WARN="[ WARN-migration ]"
 INFO="[ INFO-migration ]"
 
 WALLETPASSWORD_FILE="${WALLET_DIR}/walletpassword.txt"
-MANUAL_MIGRATION_BACKUP_FILE="/root/manual-migration/backup.zip"
+MANUAL_MIGRATION_BACKUP_FILE="/root/manual_migration/backup.zip"
 BACKUP_DIR="${WALLET_DIR}/backup"
 BACKUP_ZIP_FILE="${BACKUP_DIR}/backup.zip"
 BACKUP_KEYSTORES_DIR="${BACKUP_DIR}/keystores" # Directory where the keystores are stored in format: keystore_0.json keystore_1.json ...
@@ -144,8 +144,8 @@ function export_keystores_walletpassowrd() {
     exit 1
   }
 
-  # Create manual-migration file
-  mkdir -p /root/manual-migration
+  # Create manual_migration file
+  mkdir -p /root/manual_migration
   cp "$BACKUP_ZIP_FILE" "$MANUAL_MIGRATION_BACKUP_FILE"
   zip -r "$MANUAL_MIGRATION_BACKUP_FILE" "${WALLETPASSWORD_FILE}"
 
@@ -202,7 +202,7 @@ function import_validators() {
     "${WEB3SIGNER_API}"/eth/v1/keystores
 
   # If this point is reached, then the migration was succeed, otherwise the error_handling will raise
-  # Delete manual-migration file
+  # Delete manual_migration file
   rm -rf "$MANUAL_MIGRATION_BACKUP_FILE"
 
   echo "${INFO} validators imported"
