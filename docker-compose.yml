@@ -9,14 +9,16 @@ services:
     volumes:
       - "beacon-chain-data:/data"
     ports:
-      - "13000"
-      - 12000/udp
+      - "13005:13005/tcp"
+      - "12005:12005/udp"
     restart: unless-stopped
     environment:
       HTTP_WEB3PROVIDER: "http://goerli-geth.dappnode:8545"
       CHECKPOINT_SYNC_URL: ""
       CORSDOMAIN: "http://prysm-prater.dappnode"
       WEB3_BACKUP: ""
+      P2P_TCP_PORT: 13005
+      P2P_UDP_PORT: 12005
       EXTRA_OPTS: ""
   validator:
     image: "validator.prysm-prater.dnp.dappnode.eth:1.0.0"
