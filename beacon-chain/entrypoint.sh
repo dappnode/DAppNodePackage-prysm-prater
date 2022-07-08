@@ -11,6 +11,7 @@ else
 fi
 
 exec -c beacon-chain \
+  --accept-terms-of-use \
   --prater \
   --datadir=/data \
   --rpc-host=0.0.0.0 \
@@ -21,5 +22,4 @@ exec -c beacon-chain \
   --http-web3provider=$HTTP_WEB3PROVIDER \
   --grpc-gateway-port=3500 \
   --grpc-gateway-corsdomain=$CORSDOMAIN \
-  --accept-terms-of-use \
   $EXTRA_OPTS
