@@ -32,9 +32,6 @@
     "minimumDappnodeVersion": "0.2.51"
   },
   "categories": ["Blockchain", "ETH2.0"],
-  "warnings": {
-    "onMajorUpdate": "This is a major update of Prysm Prater, it will start validating with the web3signer. There will be a migration where your keystores will be replaced to another location, pay attention to the update"
-  },
   "links": {
     "ui": "http://ui.web3signer-prater.dappnode?signer_url=http://web3signer.web3signer-prater.dappnode:9000",
     "homepage": "https://prysmaticlabs.com/",
@@ -42,7 +39,10 @@
     "docs": "https://docs.prylabs.network/docs/getting-started"
   },
   "dependencies": {
-    "goerli-geth.dnp.dappnode.eth": "latest",
     "web3signer-prater.dnp.dappnode.eth": "latest"
+  },
+  "warnings": {
+    "onMajorUpdate": "This is a major update that enables multiclient validation on Prater Chain.⚠️ BEFORE YOU START, MAKE SURE YOU HAVE A BACKUP OF THE VALIDATOR KEYS⚠️ . A new package, the web3signer, will be automatically installed and keys will be moved inside of this package. The web3signer will hold the keys and allow you to change validator clients safely. From now on, the UI to handle the keystores will be available at the web3signer package. You will be prompted to choose a validator client in the following steps; make sure you select one that is installed and synced (leave it as Prysm if you are not sure, you can change it later). Pay attention to the update and make sure the keystores are successfully relocated by checking the UI of the web3signer after the update.",
+    "onRemove": "Before deleting this package, make sure your web3signer is not using it to validate, or you will stop validating. You can check it at Packages > web3signer > Config > Client)"
   }
 }
