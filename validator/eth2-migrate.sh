@@ -17,8 +17,9 @@ BACKUP_DIR="${WALLET_DIR}/backup"
 BACKUP_ZIP_FILE="${BACKUP_DIR}/backup.zip"
 BACKUP_KEYSTORES_DIR="${BACKUP_DIR}/keystores" # Directory where the keystores are stored in format: keystore_0.json keystore_1.json ...
 BACKUP_SLASHING_FILE="${BACKUP_DIR}/slashing_protection.json"
+BACKUP_SLASHING_FILE_PRUNE="${BACKUP_DIR}/slashing_protection_prune.json"
 BACKUP_WALLETPASSWORD_FILE="${BACKUP_DIR}/walletpassword.txt"
-REQUEST_BODY_FILE="${BACKUP_DIR}/request_body.json"
+REQUEST_BODY_FILE="${BACKUP_DIR}/request_body"
 
 #############
 # FUNCTIONS #
@@ -29,7 +30,7 @@ function ensure_files_exist() {
   # Check if wallet directory exists
   if [ ! -d "${WALLET_DIR}" ]; then
     {
-      echo "${ERROR} wallet directory not found, manual migration required"
+      echo "${ERROR} wallet directory not found, manual migration required. Please check https://prater-manual-migration.dappnode.io to get more info"
       empty_validator_volume
       exit 1
     }
@@ -38,7 +39,7 @@ function ensure_files_exist() {
   # Check if wallet password file exists
   if [ ! -f "${WALLETPASSWORD_FILE}" ]; then
     {
-      echo "${ERROR} wallet password file not found, manual migration required"
+      echo "${ERROR} wallet password file not found, manual migration required. Please check https://prater-manual-migration.dappnode.io to get more info"
       empty_validator_volume
       exit 1
     }
@@ -48,6 +49,26 @@ function ensure_files_exist() {
 # Ensure requirements
 function ensure_requirements() {
   # Try for 3 minutes
+  # Check if beacon is available
+  if [ "$(curl -s -X GET \
+    -H "Content-Type: application/json" \
+    --write-out '%{http_code}' \
+    --silent \
+    --output /dev/null \
+    --retry 30 \
+    --retry-delay 3 \
+    --retry-all-errors \
+    http://beacon-chain.prysm-prater.dappnode:3500/eth/v1/beacon/genesis)" == 200 ]; then
+    echo "${INFO} web3signer available"
+  else
+    {
+      echo "${ERROR} beacon-chain not available after 3 minutes, manual migration required. Please check https://prater-manual-migration.dappnode.io to get more info"
+      empty_validator_volume
+      exit 1
+    }
+  fi
+
+  # Try for 3 minutes
   # Check if web3signer is available: https://consensys.github.io/web3signer/web3signer-eth2.html#tag/Server-Status
   if [ "$(curl -s -X GET \
     -H "Content-Type: application/json" \
@@ -55,34 +76,14 @@ function ensure_requirements() {
     --write-out '%{http_code}' \
     --silent \
     --output /dev/null \
-    --retry 60 \
+    --retry 30 \
     --retry-delay 3 \
     --retry-all-errors \
     "${WEB3SIGNER_API}/upcheck")" == 200 ]; then
     echo "${INFO} web3signer available"
   else
     {
-      echo "${ERROR} web3signer not available after 3 minutes, manual migration required"
-      empty_validator_volume
-      exit 1
-    }
-  fi
-
-  # Try for 3 minutes
-  # Check if beacon is available
-  if [ "$(curl -s -X GET \
-    -H "Content-Type: application/json" \
-    --write-out '%{http_code}' \
-    --silent \
-    --output /dev/null \
-    --retry 60 \
-    --retry-delay 3 \
-    --retry-all-errors \
-    http://beacon-chain.prysm-prater.dappnode:3500/eth/v1/beacon/genesis)" == 200 ]; then
-    echo "${INFO} web3signer available"
-  else
-    {
-      echo "${ERROR} web3signer not available after 3 minutes, manual migration required"
+      echo "${ERROR} web3signer not available after 3 minutes, manual migration required. Please check https://prater-manual-migration.dappnode.io to get more info"
       empty_validator_volume
       exit 1
     }
@@ -122,7 +123,7 @@ function get_public_keys() {
     fi
   else
     {
-      echo "${ERROR} validator accounts list failed, manual migration required"
+      echo "${ERROR} validator accounts list failed, manual migration required. Please check https://prater-manual-migration.dappnode.io to get more info"
       empty_validator_volume
       exit 1
     }
@@ -131,6 +132,7 @@ function get_public_keys() {
 
 # Export validators and walletpassword.txt
 function export_keystores_walletpassowrd() {
+  # Export validator keystores
   validator accounts backup \
     --wallet-dir="${WALLET_DIR}" \
     --wallet-password-file="${WALLETPASSWORD_FILE}" \
@@ -139,7 +141,7 @@ function export_keystores_walletpassowrd() {
     --backup-public-keys="${PUBLIC_KEYS_COMMA_SEPARATED}" \
     --"${NETWORK}" \
     --accept-terms-of-use || {
-    echo "${ERROR} failed to export keystores, manual migration required"
+    echo "${ERROR} failed to export keystores, manual migration required. Please check https://prater-manual-migration.dappnode.io to get more info"
     empty_validator_volume
     exit 1
   }
@@ -147,16 +149,18 @@ function export_keystores_walletpassowrd() {
   # Create manual_migration file
   mkdir -p /root/manual_migration
   cp "$BACKUP_ZIP_FILE" "$MANUAL_MIGRATION_BACKUP_FILE"
-  zip -r "$MANUAL_MIGRATION_BACKUP_FILE" "${WALLETPASSWORD_FILE}"
+  zip -j "$MANUAL_MIGRATION_BACKUP_FILE" "${WALLETPASSWORD_FILE}"
 
+  # Copy walletpassword to backup folder
   cp "${WALLETPASSWORD_FILE}" "${BACKUP_WALLETPASSWORD_FILE}" || {
-    echo "${ERROR} failed to export walletpassword.txt, manual migration required"
+    echo "${ERROR} failed to export walletpassword.txt, manual migration required. Please check https://prater-manual-migration.dappnode.io to get more info"
     empty_validator_volume
     exit 1
   }
 
+  # Unzip keystores
   unzip -d "${BACKUP_KEYSTORES_DIR}" "${BACKUP_ZIP_FILE}" || {
-    echo "${ERROR} failed to unzip keystores, manual migration required"
+    echo "${ERROR} failed to unzip keystores, manual migration required. Please check https://prater-manual-migration.dappnode.io to get more info"
     empty_validator_volume
     exit 1
   }
@@ -167,9 +171,15 @@ function export_slashing_protection() {
   validator slashing-protection-history export \
     --datadir="${WALLET_DIR}" \
     --slashing-protection-export-dir="${BACKUP_DIR}" \
-    --"${NETWORK}" \
     --accept-terms-of-use || {
-    echo "${ERROR} failed to export slashing protection, manual migration required"
+    echo "${ERROR} failed to export slashing protection, manual migration required. Please check https://prater-manual-migration.dappnode.io to get more info"
+    empty_validator_volume
+    exit 1
+  }
+
+  # Prune the slashing data to prevent the web3signer from crashing due to timeout
+  slashing-prune --source-path "$BACKUP_SLASHING_FILE" --target-path "$BACKUP_SLASHING_FILE_PRUNE" || {
+    echo "${ERROR} failed to export slashing protection, manual migration required. Please check https://prater-manual-migration.dappnode.io to get more info"
     empty_validator_volume
     exit 1
   }
@@ -185,7 +195,7 @@ function create_request_body_file() {
     echo $(jq --slurpfile keystore ${KEYSTORE_FILE} '.keystores += [$keystore[0]|tojson]' ${REQUEST_BODY_FILE}) >${REQUEST_BODY_FILE}
     echo $(jq --arg walletpassword "$(cat ${BACKUP_WALLETPASSWORD_FILE})" '.passwords += [$walletpassword]' ${REQUEST_BODY_FILE}) >${REQUEST_BODY_FILE}
   done
-  echo $(jq --slurpfile slashing $BACKUP_SLASHING_FILE '.slashing_protection |= [$slashing[0]|tojson][0]' $REQUEST_BODY_FILE) >${REQUEST_BODY_FILE}
+  echo $(jq --slurpfile slashing $BACKUP_SLASHING_FILE_PRUNE '.slashing_protection |= [$slashing[0]|tojson][0]' $REQUEST_BODY_FILE) >${REQUEST_BODY_FILE}
 }
 
 # Import validators with request body file
@@ -201,17 +211,13 @@ function import_validators() {
     -H "Host: prysm.migration-prater.dappnode" \
     "${WEB3SIGNER_API}"/eth/v1/keystores
 
-  # If this point is reached, then the migration was succeed, otherwise the error_handling will raise
-  # Delete manual_migration file
-  rm -rf "$MANUAL_MIGRATION_BACKUP_FILE"
-
   echo "${INFO} validators imported"
 }
 
 # Remove all content except validator.db amd tosaccepted file
 function empty_validator_volume() {
   # Moves tosaccepted file to walletdir
-  mv "/root/.eth2/tosaccepted" "${WALLET_DIR}"/tosaccepted || echo "${WARN} failed to move tosaccepted file, manual migration required"
+  mv "/root/.eth2/tosaccepted" "${WALLET_DIR}"/tosaccepted || echo "${WARN} failed to move tosaccepted file, manual migration required. Please check https://prater-manual-migration.dappnode.io to get more info"
   # Removes old --datadir. Not needed anymore
   rm -rf "/root/.eth2" || echo "${WARN} failed to remove /root/.eth2"
   # Removes old validator files: keystores and walletpassword.txt
