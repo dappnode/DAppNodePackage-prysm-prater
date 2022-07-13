@@ -1,7 +1,7 @@
-FROM debian:bullseye-slim as binary
-
 ARG TARGETARCH
 ARG UPSTREAM_VERSION
+
+FROM debian:bullseye-slim as binary
 ENV DOWNLOAD_URL https://github.com/prysmaticlabs/prysm/releases/download
 
 RUN DEBIAN_FRONTEND=noninteractive \

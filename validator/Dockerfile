@@ -1,6 +1,3 @@
-ARG UPSTREAM_VERSION
-ARG TARGETARCH
-
 ###############
 # Prune image #
 ###############
@@ -14,11 +11,14 @@ RUN apk update && apk add git && git clone https://github.com/dappnode/prune-sla
 # Base image #
 ##############
 FROM debian:bullseye-slim as binary
+
+ARG TARGETARCH
+ARG UPSTREAM_VERSION
 ENV DOWNLOAD_URL https://github.com/prysmaticlabs/prysm/releases/download
 
 RUN DEBIAN_FRONTEND=noninteractive \
   apt update && apt install --assume-yes --no-install-recommends wget ca-certificates && \
-  wget -q $DOWNLOAD_URL/$UPSTREAM_VERSION/validator-$UPSTREAM_VERSION-linux-${TARGETARCH:-amd64} -O /usr/local/bin/validator && \
+  wget -q ${DOWNLOAD_URL}/${UPSTREAM_VERSION}/validator-${UPSTREAM_VERSION}-linux-${TARGETARCH:-amd64} -O /usr/local/bin/validator && \
   chmod +x  /usr/local/bin/validator
 
 ################
