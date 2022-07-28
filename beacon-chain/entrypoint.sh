@@ -22,4 +22,5 @@ exec -c beacon-chain \
   --http-web3provider=$HTTP_WEB3PROVIDER \
   --grpc-gateway-port=3500 \
   --grpc-gateway-corsdomain=$CORSDOMAIN \
+  --jwt-secret=/jwtsecret \
   $EXTRA_OPTS
