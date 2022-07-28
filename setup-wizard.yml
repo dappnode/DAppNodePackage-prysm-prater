@@ -9,10 +9,10 @@ fields:
     maxLength: 32
     description: >-
       Add a string to your proposed blocks, which will be seen on the block explorer
-  - id: HTTP_WEB3PROVIDER
+  - id: HTTP_ENGINE
     target:
       type: environment
-      name: HTTP_WEB3PROVIDER
+      name: HTTP_ENGINE
       service: beacon-chain
     title: Eth1.x node URL
     description: >-
