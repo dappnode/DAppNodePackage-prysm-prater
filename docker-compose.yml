@@ -13,7 +13,7 @@ services:
       - "12503:12503/udp"
     restart: unless-stopped
     environment:
-      HTTP_WEB3PROVIDER: "http://goerli-geth.dappnode:8551"
+      HTTP_ENGINE: "http://goerli-geth.dappnode:8551"
       CHECKPOINT_SYNC_URL: ""
       CORSDOMAIN: "http://prysm-prater.dappnode"
       WEB3_BACKUP: ""
