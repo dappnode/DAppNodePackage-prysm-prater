@@ -14,9 +14,11 @@ fields:
       type: environment
       name: HTTP_ENGINE
       service: beacon-chain
-    title: Eth1.x node URL
+    title: Execution Client endpoint
+    required: true
     description: >-
-      URL to the Eth1.x node need for the Beacon chain.
+      The consensus client (Prysm,Lighthouse, Nimbus and Teku) requires to have access to an execution client to receive the execution payload by using Engine api of the execution client. This endpoint MUST be provided for an execution client which is run on your own. IT'S NOT VALID TO USE INFURA OR ANY SERVICE PROVIDER.
+      - Goerli Geth `http://goerli-geth.dappnode:8551` - [Install link](http://my.dappnode/#/installer/goerli-geth.dnp.dappnode.eth)
   - id: web3Backup
     target:
       type: environment
