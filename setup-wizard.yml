@@ -18,6 +18,7 @@ fields:
     required: true
     description: >-
       The consensus client (Prysm,Lighthouse, Nimbus and Teku) requires to have access to an execution client to receive the execution payload by using Engine api of the execution client. This endpoint MUST be provided for an execution client which is run on your own. IT'S NOT VALID TO USE INFURA OR ANY SERVICE PROVIDER.
+
       - Goerli Geth `http://goerli-geth.dappnode:8551` - [Install link](http://my.dappnode/#/installer/goerli-geth.dnp.dappnode.eth)
   - id: web3Backup
     target:
@@ -26,8 +27,7 @@ fields:
       service: beacon-chain
     title: Add a backup web3 provider
     description: >-
-      It's a good idea to add a backup web3 provider in case your main one goes down. For example, if your primary EL client is a local Geth, but you want to use Infura as a backup.
-      Get your web3 backup from [infura](https://infura.io/) (i.e https://goerli.infura.io/v3/XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX)
+      You can add another execution client to your consensus client, so in case the first one goes down, you have another one. This backup must be an execution client you run on your own. Using infura service and another similar solution doesn't work.
     required: false
   - id: checkpointSyncUrl
     target:
