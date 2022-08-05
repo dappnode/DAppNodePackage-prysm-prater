@@ -14,9 +14,7 @@ services:
     restart: unless-stopped
     environment:
       HTTP_ENGINE: "http://goerli-geth.dappnode:8551"
-      CHECKPOINT_SYNC_URL: ""
       CORSDOMAIN: "http://prysm-prater.dappnode"
-      WEB3_BACKUP: ""
       P2P_TCP_PORT: 13503
       P2P_UDP_PORT: 12503
       EXTRA_OPTS: ""
