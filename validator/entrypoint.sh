@@ -59,4 +59,5 @@ exec -c validator --prater \
   --suggested-fee-recipient="${FEE_RECIPIENT_ADDRESS}" \
   --web \
   --accept-terms-of-use \
+  --enable-doppelganger \
   ${EXTRA_OPTS}
