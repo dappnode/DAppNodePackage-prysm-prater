@@ -13,7 +13,6 @@ services:
       - "12503:12503/udp"
     restart: unless-stopped
     environment:
-      HTTP_ENGINE: "http://goerli-geth.dappnode:8551"
       CORSDOMAIN: "http://prysm-prater.dappnode"
       P2P_TCP_PORT: 13503
       P2P_UDP_PORT: 12503
