@@ -10,6 +10,18 @@ else
   EXTRA_OPTS="--genesis-state=/genesis.ssz ${EXTRA_OPTS}"
 fi
 
+case $_DAPPNODE_GLOBAL_CONSENSUS_CLIENT_PRATER in
+"goerli-geth.dnp.dappnode.eth")
+  HTTP_ENGINE="http://goerli-geth.dappnode:8551"
+  ;;
+*)
+  echo "Unknown value for _DAPPNODE_GLOBAL_CONSENSUS_CLIENT_PRATER: $_DAPPNODE_GLOBAL_CONSENSUS_CLIENT_PRATER"
+  HTTP_ENGINE=_DAPPNODE_GLOBAL_CONSENSUS_CLIENT_PRATER
+  ;;
+esac
+
+# TODO: mevboost variable
+
 exec -c beacon-chain \
   --datadir=/data \
   --rpc-host=0.0.0.0 \
