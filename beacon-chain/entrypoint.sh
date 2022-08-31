@@ -10,6 +10,10 @@ else
   EXTRA_OPTS="--genesis-state=/genesis.ssz ${EXTRA_OPTS}"
 fi
 
+if [[ $MEV_BOOST == "yes" ]]; then
+  EXTRA_OPTS="--http-mev-relay=http://mev-boost-goerli:18550 ${EXTRA_OPTS}"
+fi
+
 exec -c beacon-chain \
   --datadir=/data \
   --rpc-host=0.0.0.0 \
