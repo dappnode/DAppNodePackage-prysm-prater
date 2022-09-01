@@ -20,7 +20,11 @@ case $_DAPPNODE_GLOBAL_EXECUTION_CLIENT_PRATER in
   ;;
 esac
 
-# TODO: mevboost variable
+# MEVBOOST: https://hackmd.io/@prysmaticlabs/BJeinxFsq
+if [ -n "$_DAPPNODE_GLOBAL_MEVBOOST_PRATER" ] && [ "$_DAPPNODE_GLOBAL_MEVBOOST_PRATER" == "true" ]; then
+  echo "MEVBOOST is enabled"
+  EXTRA_OPTS="--http-mev-relay=http://mev-boost-goerli.mev-boost:18550 ${EXTRA_OPTS}"
+fi
 
 exec -c beacon-chain \
   --datadir=/data \

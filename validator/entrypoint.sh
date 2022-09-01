@@ -45,6 +45,12 @@ else
   fi
 fi
 
+# MEVBOOST: https://hackmd.io/@prysmaticlabs/BJeinxFsq
+if [ -n "$_DAPPNODE_GLOBAL_MEVBOOST_PRATER" ] && [ "$_DAPPNODE_GLOBAL_MEVBOOST_PRATER" == "true" ]; then
+  echo "MEVBOOST is enabled"
+  EXTRA_OPTS="--enable-builder ${EXTRA_OPTS}"
+fi
+
 exec -c validator --prater \
   --datadir="$WALLET_DIR" \
   --wallet-dir="$WALLET_DIR" \
