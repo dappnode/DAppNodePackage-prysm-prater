@@ -20,6 +20,16 @@ fields:
       The consensus client (Prysm,Lighthouse, Nimbus and Teku) requires to have access to an execution client to receive the execution payload by using Engine api of the execution client. This endpoint MUST be provided for an execution client which is run on your own. IT'S NOT VALID TO USE INFURA OR ANY SERVICE PROVIDER.
 
       - Goerli Geth `http://goerli-geth.dappnode:8551` - [Install link](http://my.dappnode/#/installer/goerli-geth.dnp.dappnode.eth)
+  - id: checkpointSyncUrl
+    target:
+      type: environment
+      name: CHECKPOINT_SYNC_URL
+      service: beacon-chain
+    title: Checkpoint for fast sync
+    description: >-
+      To get Prysm up and running in only a few minutes, you can start Prysm from a recent finalized checkpoint state rather than syncing from genesis. This is substantially **faster** and consumes **less resources** than syncing from genesis, while still providing all the same features. Be sure you are using a trusted node for the fast sync. Check [Teku docs](https://docs.teku.consensys.net/en/latest/HowTo/Get-Started/Checkpoint-Start/)
+      Get your checkpoint sync from [infura](https://infura.io/) (i.e https://XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX@eth2-beacon-prater.infura.io)
+    required: false
   - id: feeRecipientAddress
     target:
       type: environment
