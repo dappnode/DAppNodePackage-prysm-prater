@@ -31,9 +31,9 @@ if [ -n "$_DAPPNODE_GLOBAL_MEVBOOST_PRATER" ] && [ "$_DAPPNODE_GLOBAL_MEVBOOST_P
   echo "MEVBOOST is enabled"
   MEVBOOST_URL="http://mev-boost.mev-boost-goerli.dappnode:18550"
   if curl --retry 5 --retry-delay 5 --retry-all-errors "${MEVBOOST_URL}"; then
-    EXTRA_OPTS="--http-mev-relay=http://mev-boost.mev-boost-goerli.dappnode:18550 ${EXTRA_OPTS}"
+    EXTRA_OPTS="--http-mev-relay=${MEVBOOST_URL} ${EXTRA_OPTS}"
   else
-    echo "MEVBOOST is enabled but the MEVBOOST_URL is not reachable"
+    echo "MEVBOOST is enabled but ${MEVBOOST_URL} is not reachable"
     curl -X POST -G 'http://my.dappnode/notification-send' --data-urlencode 'type=danger' --data-urlencode title="${MEVBOOST_URL} is not available" --data-urlencode 'body=Make sure the mevboost is available and running'
   fi
 fi
