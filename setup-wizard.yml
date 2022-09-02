@@ -24,7 +24,7 @@ fields:
     target:
       type: environment
       name: CHECKPOINT_SYNC_URL
-      service: beacon-validator
+      service: beacon-chain
     title: Checkpoint for fast sync
     description: >-
       To get Teku up and running in only a few minutes, you can start Teku from a recent finalized checkpoint state rather than syncing from genesis. This is substantially **faster** and consumes **less resources** than syncing from genesis, while still providing all the same features. Be sure you are using a trusted node for the fast sync. Check [Teku docs](https://docs.teku.consensys.net/en/latest/HowTo/Get-Started/Checkpoint-Start/)
