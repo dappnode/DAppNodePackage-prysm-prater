@@ -19,7 +19,7 @@ COPY --from=binary /tmp/genesis.ssz /genesis.ssz
 COPY jwtsecret.hex /jwtsecret
 
 RUN apt update && \
-  apt install -y ca-certificates file && \
+  apt install -y curl ca-certificates file && \
   rm -rf /var/lib/apt/lists/*
 
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
