@@ -5,7 +5,7 @@ services:
     build:
       context: beacon-chain
       args:
-        UPSTREAM_VERSION: v2.1.4
+        UPSTREAM_VERSION: v3.0.0
     volumes:
       - "beacon-chain-data:/data"
     ports:
@@ -17,6 +17,7 @@ services:
       CHECKPOINT_SYNC_URL: ""
       P2P_TCP_PORT: 13503
       P2P_UDP_PORT: 12503
+      CHECKPOINT_SYNC_URL: ""
       EXTRA_OPTS: ""
   validator:
     image: "validator.prysm-prater.dnp.dappnode.eth:1.0.0"
@@ -24,7 +25,7 @@ services:
       context: validator
       dockerfile: Dockerfile
       args:
-        UPSTREAM_VERSION: v2.1.4
+        UPSTREAM_VERSION: v3.0.0
         BRANCH: develop
     volumes:
       - "validator-data:/root/"
