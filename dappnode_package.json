@@ -1,7 +1,7 @@
 {
   "name": "prysm-prater.dnp.dappnode.eth",
   "version": "1.0.0",
-  "upstreamVersion": "v3.0.0",
+  "upstreamVersion": "v3.1.0",
   "upstreamRepo": "prysmaticlabs/prysm",
   "upstreamArg": "UPSTREAM_VERSION",
   "shortDescription": "Prysm prater ETH2.0 Beacon chain + validator",
@@ -43,7 +43,13 @@
     "onRemove": "Before deleting this package, make sure your web3signer is not using it to validate, or you will stop validating. You can check it at Packages > web3signer > Config > Client)"
   },
   "globalEnvs": [
-    { "envs": ["EXECUTION_CLIENT_PRATER", "MEVBOOST_PRATER"], "services": ["beacon-chain"] },
-    { "envs": ["MEVBOOST_PRATER"], "services": ["validator"] }
+    {
+      "envs": ["EXECUTION_CLIENT_PRATER", "MEVBOOST_PRATER"],
+      "services": ["beacon-chain"]
+    },
+    {
+      "envs": ["MEVBOOST_PRATER"],
+      "services": ["validator"]
+    }
   ]
 }
