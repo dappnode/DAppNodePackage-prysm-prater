@@ -39,6 +39,11 @@ if [ -n "$_DAPPNODE_GLOBAL_MEVBOOST_PRATER" ] && [ "$_DAPPNODE_GLOBAL_MEVBOOST_P
   fi
 fi
 
+oLang=$LANG oLcAll=$LC_ALL
+LANG=C LC_ALL=C 
+graffitiString=${GRAFFITI:0:32}
+LANG=$oLang LC_ALL=$oLcAll
+
 exec -c validator --prater \
   --datadir="$WALLET_DIR" \
   --wallet-dir="$WALLET_DIR" \
@@ -49,7 +54,7 @@ exec -c validator --prater \
   --grpc-gateway-host=0.0.0.0 \
   --grpc-gateway-port="$VALIDATOR_PORT" \
   --grpc-gateway-corsdomain=http://0.0.0.0:"$VALIDATOR_PORT" \
-  --graffiti="${GRAFFITI:0:32}" \
+  --graffiti="${graffitiString}" \
   --suggested-fee-recipient="${FEE_RECIPIENT_ADDRESS}" \
   --web \
   --accept-terms-of-use \
