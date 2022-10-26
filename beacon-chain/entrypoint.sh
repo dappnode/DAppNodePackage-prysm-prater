@@ -13,6 +13,9 @@ case $_DAPPNODE_GLOBAL_EXECUTION_CLIENT_PRATER in
 "goerli-nethermind.dnp.dappnode.eth")
   HTTP_ENGINE="http://goerli-nethermind.dappnode:8551"
   ;;
+"goerli-besu.dnp.dappnode.eth")
+  HTTP_ENGINE="http://goerli-besu.dappnode:8551"
+  ;;
 "goerli-erigon.dnp.dappnode.eth")
   HTTP_ENGINE="http://goerli-erigon.dappnode:8551"
   ;;
