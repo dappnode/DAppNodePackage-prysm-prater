@@ -5,7 +5,7 @@ services:
     build:
       context: beacon-chain
       args:
-        UPSTREAM_VERSION: v3.2.1
+        UPSTREAM_VERSION: v3.2.2-rc.0
     volumes:
       - "beacon-chain-data:/data"
     ports:
@@ -24,7 +24,7 @@ services:
       context: validator
       dockerfile: Dockerfile
       args:
-        UPSTREAM_VERSION: v3.2.1
+        UPSTREAM_VERSION: v3.2.2-rc.0
         BRANCH: develop
     volumes:
       - "validator-data:/root/"
