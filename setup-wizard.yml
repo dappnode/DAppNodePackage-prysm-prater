@@ -20,14 +20,3 @@ fields:
       Use the Dappnode Official endpoint `https://checkpoint-sync-prater.dappnode.io` or get your checkpoint sync from [Infura](https://infura.io/) (i.e https://XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX@eth2-beacon-prater.infura.io)
       *Note - If you are going to provide your own checkpoint sync endpoint, make sure you do not use a slash `/` at the end of the URL.*
     required: false
-  - id: feeRecipientAddress
-    target:
-      type: environment
-      name: FEE_RECIPIENT_ADDRESS
-      service: validator
-    title: Fee Recipient Address
-    description: >-
-      Fee Recipient is a feature that lets you specify a priority fee recipient address on your validator client instance and beacon node. Make sure this is an address you control. After The Merge, Execution Clients will begin depositing priority fees into this address whenever your validator proposes a new block.
-    required: true
-    pattern: "^0x[a-fA-F0-9]{40}$"
-    patternErrorMessage: Must be a valid address (0x1fd16a...)
