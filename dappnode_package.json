@@ -29,7 +29,7 @@
     "url": "https://github.com/dappnode/DAppNodePackage-prysm-prater/issues"
   },
   "requirements": {
-    "minimumDappnodeVersion": "0.2.58"
+    "minimumDappnodeVersion": "0.2.68"
   },
   "categories": ["Blockchain", "ETH2.0"],
   "links": {
@@ -48,7 +48,7 @@
       "services": ["beacon-chain"]
     },
     {
-      "envs": ["MEVBOOST_PRATER"],
+      "envs": ["MEVBOOST_PRATER", "FEE_RECIPIENT_PRATER"],
       "services": ["validator"]
     }
   ]
