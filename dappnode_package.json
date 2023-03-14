@@ -29,7 +29,7 @@
     "url": "https://github.com/dappnode/DAppNodePackage-prysm-prater/issues"
   },
   "requirements": {
-    "minimumDappnodeVersion": "0.2.68"
+    "minimumDappnodeVersion": "0.2.69"
   },
   "categories": ["Blockchain", "ETH2.0"],
   "links": {
