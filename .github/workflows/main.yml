@@ -25,7 +25,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - run: npx @dappnode/dappnodesdk@latest github-action test-end-to-end --errorLogsTimeout 120 --healthCheckUrl http://beacon-chain.prysm-prater.dappnode:3500/eth/v1/beacon/genesis --network prater
-
+        env:
+          VALIDATOR_INDEX: ${{ secrets.PRATER_VALIDATOR_INDEX }}
+          
   release:
     name: Release
     runs-on: ubuntu-latest
