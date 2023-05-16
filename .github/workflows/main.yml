@@ -24,7 +24,7 @@ jobs:
     name: End to end tests
     steps:
       - uses: actions/checkout@v2
-      - run: npx @dappnode/dappnodesdk@latest github-action test-end-to-end --errorLogsTimeout 120 --healthCheckUrl http://beacon-chain.prysm-prater.dappnode:3500/eth/v1/beacon/genesis --network prater
+      - run: npx @dappnode/dappnodesdk@latest github-action test-end-to-end --errorLogsTimeout 120 --healthCheckUrl http://beacon-chain.prysm-prater.dappnode:3500/eth/v1/beacon/genesis --network prater --environmentByService="{\"beacon-chain\":{\"CHECKPOINT_SYNC_URL\":\"https://checkpoint-sync-prater.dappnode.io\"}}"
         env:
           VALIDATOR_INDEX: ${{ secrets.PRATER_VALIDATOR_INDEX }}
           
