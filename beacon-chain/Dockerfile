@@ -14,7 +14,6 @@ FROM debian:bullseye-slim
 
 #Copy binaries from build stage
 COPY --from=binary /usr/local/bin/beacon-chain /usr/local/bin/beacon-chain
-COPY --from=binary /tmp/genesis.ssz /genesis.ssz
 COPY jwtsecret.hex /jwtsecret
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 
