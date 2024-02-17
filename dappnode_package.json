@@ -7,7 +7,7 @@
   "shortDescription": "Prysm implementation for Prater Beacon chain + validator",
   "description": "Validate with Prysm: a Go implementation of the Beacon Chain and open source project created by Prysmatic Labs. Beacon node which powers the beacon chain at the core of Ethereum 2.0\n\nIt includes a Grafana dashboard for the [DMS](http://my.dappnode/#/installer/dms.dnp.dappnode.eth) thanks to the amazing work of [metanull-operator](https://github.com/metanull-operator/eth2-grafana)",
   "type": "service",
-  "architectures": ["linux/amd64"],
+  "architectures": ["linux/amd64", "linux/arm64"],
   "chain": {
     "driver": "ethereum-beacon-chain",
     "serviceName": "beacon-chain",
@@ -18,7 +18,8 @@
   "contributors": [
     "dappLion <dapplion@dappnode.io> (https://github.com/dapplion)",
     "tropicar <tropicar@dappnode.io> (https://github.com/tropicar)",
-    "pablo <pablo@dappnode.io> (https://github.com/pablomendezroyo)"
+    "pablo <pablo@dappnode.io> (https://github.com/pablomendezroyo)",
+    "Voss <voss@visnovalabs.io> (https://github/alexpeterson91)"
   ],
   "license": "GPL-3.0",
   "repository": {
@@ -39,8 +40,7 @@
     "docs": "https://docs.prylabs.network/docs/getting-started"
   },
   "warnings": {
-    "onMajorUpdate": "This is a major update that enables multiclient validation on Prater Chain.⚠️ BEFORE YOU START, MAKE SURE YOU HAVE A BACKUP OF THE VALIDATOR KEYS⚠️ . A new package, the web3signer, will be automatically installed and keys will be moved inside of this package. The web3signer will hold the keys and allow you to change validator clients safely. From now on, the UI to handle the keystores will be available at the web3signer package. You will be prompted to choose a validator client in the following steps; make sure you select one that is installed and synced (leave it as Prysm if you are not sure, you can change it later). Pay attention to the update and make sure the keystores are successfully relocated by checking the UI of the web3signer after the update.",
-    "onRemove": "Before deleting this package, make sure your web3signer is not using it to validate, or you will stop validating. You can check it at Packages > web3signer > Config > Client)"
+    "onRemove": "Before deleting this package, make sure your StakersUI does not have Prysm Prater Selected as the Consensus Client, or you will stop validating. You can check it by going to Stakers on the Left Nav Bar and then selecting the Prater Tab along the top.)"
   },
   "globalEnvs": [
     {
