@@ -30,7 +30,10 @@
     "url": "https://github.com/dappnode/DAppNodePackage-prysm-prater/issues"
   },
   "requirements": {
-    "minimumDappnodeVersion": "0.2.58"
+    "minimumDappnodeVersion": "0.2.89"
+  },
+  "optionalDependencies": {
+    "web3signer-prater.dnp.dappnode.eth": "0.1.28"
   },
   "categories": ["Blockchain", "ETH2.0"],
   "links": {
