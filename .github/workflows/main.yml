@@ -14,7 +14,7 @@ jobs:
     name: Build test
     if: github.event_name != 'push'
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - run: npx @dappnode/dappnodesdk build --skip_save
 
   e2e-test:
@@ -23,17 +23,17 @@ jobs:
     if: github.event_name != 'push'
     name: End to end tests
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - run: npx @dappnode/dappnodesdk@latest github-action test-end-to-end --errorLogsTimeout 120 --healthCheckUrl http://beacon-chain.prysm-prater.dappnode:3500/eth/v1/beacon/genesis --network prater --environmentByService="{\"beacon-chain\":{\"CHECKPOINT_SYNC_URL\":\"https://checkpoint-sync-prater.dappnode.io\"}}"
         env:
           VALIDATOR_INDEX: ${{ secrets.PRATER_VALIDATOR_INDEX }}
-          
+
   release:
     name: Release
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Publish
         run: npx @dappnode/dappnodesdk publish patch --dappnode_team_preset
         env:

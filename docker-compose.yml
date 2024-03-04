@@ -1,7 +1,7 @@
 version: "3.5"
 services:
   beacon-chain:
-    image: "beacon-chain.prysm-prater.dnp.dappnode.eth:1.0.0"
+    image: "beacon-chain.prysm-prater.dnp.dappnode.eth:1.0.28"
     build:
       context: beacon-chain
       args:
@@ -20,7 +20,7 @@ services:
       EXTRA_OPTS: ""
       FEE_RECIPIENT_ADDRESS: ""
   validator:
-    image: "validator.prysm-prater.dnp.dappnode.eth:1.0.0"
+    image: "validator.prysm-prater.dnp.dappnode.eth:1.0.28"
     build:
       context: validator
       dockerfile: Dockerfile
