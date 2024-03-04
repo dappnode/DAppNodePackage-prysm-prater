@@ -1,5 +1,5 @@
 ARG UPSTREAM_VERSION
-FROM debian:bullseye AS builder
+FROM debian:bullseye-slim AS builder
 
 # Use ldd to copy dependencies of grep
 RUN mkdir /deps

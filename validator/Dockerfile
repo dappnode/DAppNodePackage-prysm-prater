@@ -1,5 +1,5 @@
 ARG UPSTREAM_VERSION
-FROM debian:bullseye AS builder
+FROM debian:bullseye-slim AS builder
 
 ARG UPSTREAM_VERSION
 FROM gcr.io/prysmaticlabs/prysm/validator:${UPSTREAM_VERSION}
