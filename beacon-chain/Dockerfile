@@ -1,30 +1,25 @@
-FROM debian:bullseye-slim as binary
-
-ARG TARGETARCH
 ARG UPSTREAM_VERSION
-ENV DOWNLOAD_URL https://github.com/prysmaticlabs/prysm/releases/download
+FROM debian:bullseye AS builder
 
-RUN DEBIAN_FRONTEND=noninteractive \
-  apt update && apt install --assume-yes --no-install-recommends wget ca-certificates && \
-  echo ${DOWNLOAD_URL}/${UPSTREAM_VERSION}/beacon-chain-${UPSTREAM_VERSION}-linux-${TARGETARCH:-amd64} && \
-  wget -q ${DOWNLOAD_URL}/${UPSTREAM_VERSION}/beacon-chain-${UPSTREAM_VERSION}-linux-${TARGETARCH:-amd64} -O /usr/local/bin/beacon-chain && \
-  wget -q https://github.com/eth-clients/goerli/raw/main/prater/genesis.ssz -O /tmp/genesis.ssz && \
-  chmod +x  /usr/local/bin/beacon-chain
+# Use ldd to copy dependencies of grep
+RUN mkdir /deps
+RUN ldd /bin/grep | tr -s '[:space:]' '\n' | grep '^/' | xargs -I {} cp -v {} /deps || true
 
-FROM debian:bullseye-slim
+ARG UPSTREAM_VERSION
+FROM gcr.io/prysmaticlabs/prysm/beacon-chain:${UPSTREAM_VERSION}
 
-#Copy binaries from build stage
-COPY --from=binary /usr/local/bin/beacon-chain /usr/local/bin/beacon-chain
-COPY --from=binary /tmp/genesis.ssz /genesis.ssz
 COPY jwtsecret.hex /jwtsecret
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 
-RUN apt update && \
-  apt install -y curl ca-certificates file && \
-  rm -rf /var/lib/apt/lists/* && \
-  chmod +x /usr/local/bin/entrypoint.sh
+# Only mainnet genesis file is included by default
+COPY genesis.ssz /genesis.ssz
 
+COPY --from=builder /bin/sh /bin/sh
+COPY --from=builder /bin/grep /bin/grep
+COPY --from=builder /deps/* /lib/
 
+ENV GENESIS_FILE_PATH=/genesis.ssz \
+  JWT_PATH=/jwtsecret \
+  VALIDATOR_PORT=3500
 
 ENTRYPOINT [ "/usr/local/bin/entrypoint.sh" ]
-
