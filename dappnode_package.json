@@ -1,7 +1,7 @@
 {
   "name": "prysm-prater.dnp.dappnode.eth",
   "version": "1.0.28",
-  "upstreamVersion": "v5.0.0",
+  "upstreamVersion": "v5.0.1",
   "upstreamRepo": "prysmaticlabs/prysm",
   "upstreamArg": "UPSTREAM_VERSION",
   "shortDescription": "Prysm implementation for Prater Beacon chain + validator",
